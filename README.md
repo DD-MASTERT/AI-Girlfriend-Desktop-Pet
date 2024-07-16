@@ -20,7 +20,7 @@ git clone https://github.com/DD-MASTERT/AI-Girlfriend-Desktop-Pet.git
 cd AI-Girlfriend-Desktop-Pet
 pip install -r requirements.txt
  ```
-3. 安装依赖并封装api部分，不想封装为exe的话改main.py里的启动api的按钮绑定的函数为运行py即可，这里python版本依赖支持即可，不用强求Python 3.10.11 32-bit
+3. 单独安装依赖并封装api部分，不想封装为exe的话改main.py里的启动api的按钮绑定的函数为运行py即可，这里python版本依赖支持即可，不用强求Python 3.10.11 32-bit
  ```
 cd api
 pip install -r requirements.txt
