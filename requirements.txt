@@ -1,20 +1,8 @@
-numpy
-soundfile
-gradio_client==1.0.1
-selenium==4.3.0
-webdriver_manager==4.0.1
-tencentcloud-sdk-python
 pygame==2.5.2
 requests==2.32.3
-fastapi==0.111.0
-pydantic==2.7.4
-uvicorn
-install uvicorn[standard]
-urllib3==1.26.19
 PySide2==5.15.2.1
 PySide2-Fluent-Widgets==1.5.8
 pygame==2.6.0
 pydub==0.25.1
-edge-tts
-azure-cognitiveservices-speech
+
 
