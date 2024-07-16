@@ -1,0 +1,241 @@
+{
+    "Live2DModel": {
+        "options": [
+            "11",
+            "ATRI",
+            "Haru",
+            "Hiyori",
+            "kanzaki",
+            "Mao",
+            "March 7th",
+            "Mark",
+            "Natori",
+            "remu",
+            "Rice",
+            "Wanko"
+        ],
+        "default": "kanzaki"
+    },
+    "CharacterSize": {
+        "default": "400 650",
+        "options": [
+            "300 500"
+        ]
+    },
+    "FPS": {
+        "default": "30",
+        "options": [
+            "30"
+        ]
+    },
+    "CAI": {
+        "default": "32",
+        "options": [
+            "32"
+        ]
+    },
+    "MouseThrough": {
+        "options": [
+            "开启",
+            "关闭"
+        ],
+        "default": "关闭"
+    },
+    "Top": {
+        "options": [
+            "开启",
+            "关闭"
+        ],
+        "default": "关闭"
+    },
+    "BubbleDuration": {
+        "default": "10",
+        "options": [
+            "8"
+        ]
+    },
+    "MouthSync": {
+        "default": "3",
+        "options": [
+            "5"
+        ]
+    },
+    "AutoPlayAction": {
+        "options": [
+            "tap"
+        ],
+        "default": "tap"
+    },
+    "PlayFrequency": {
+        "default": "60",
+        "options": [
+            "50"
+        ]
+    },
+    "GSVModel": {
+        "options": [
+            "ATRI",
+            "leimu",
+            "亚托莉",
+            "纳西妲"
+        ],
+        "default": "leimu"
+    },
+    "Presets": {
+        "options": [
+            "亚托莉",
+            "雷姆",
+            "雷姆2"
+        ],
+        "default": "雷姆"
+    },
+    "InferLanguage": {
+        "options": [
+            "中文",
+            "英文",
+            "日文",
+            "中英混合",
+            "日英混合",
+            "多语种混合"
+        ],
+        "default": "日文"
+    },
+    "Pause": {
+        "default": "0.5",
+        "options": [
+            "0.8"
+        ]
+    },
+    "Translation": {
+        "options": [
+            "百度",
+            "腾讯",
+            "百度ai",
+            "括号翻译",
+            "不翻译"
+        ],
+        "default": "不翻译"
+    },
+    "Reply": {
+        "options": [
+            "原文",
+            "翻译",
+            "原文加翻译"
+        ],
+        "default": "原文"
+    },
+    "TALK": {
+        "options": [
+            "GPT-SOVITS语音请求",
+            "无语音请求",
+            "微软语音",
+            "CosyVoice语音"
+        ],
+        "default": "微软语音"
+    },
+    "cosyvoice": {
+        "options": [
+            "no",
+            "no",
+            "no",
+            "no"
+        ],
+        "default": "no"
+    },
+    "Edgevoice": {
+        "options": [
+            "zh-CN-XiaoxiaoMultilingualNeural",
+            "zh-CN-XiaochenMultilingualNeural",
+            "zh-CN-XiaoyuMultilingualNeural",
+            "zh-CN-YunyiMultilingualNeural",
+            "zh-CN-XiaoxiaoNeural",
+            "zh-CN-XiaoyiNeural",
+            "zh-CN-YunjianNeural",
+            "zh-CN-YunxiNeural",
+            "zh-CN-YunxiaNeural",
+            "zh-CN-YunyangNeural",
+            "zh-CN-liaoning-XiaobeiNeural",
+            "zh-CN-shaanxi-XiaoniNeural",
+            "zh-HK-HiuGaaiNeural",
+            "zh-HK-HiuMaanNeural",
+            "zh-HK-WanLungNeural",
+            "zh-TW-HsiaoChenNeural",
+            "zh-TW-HsiaoYuNeural",
+            "zh-TW-YunJheNeural",
+            "ja-JP-KeitaNeural",
+            "ja-JP-NanamiNeural",
+            "en-AU-NatashaNeural",
+            "en-AU-WilliamNeural",
+            "en-CA-ClaraNeural",
+            "en-CA-LiamNeural",
+            "en-GB-LibbyNeural",
+            "en-GB-MaisieNeural",
+            "en-GB-RyanNeural",
+            "en-GB-SoniaNeural",
+            "en-GB-ThomasNeural",
+            "en-HK-SamNeural",
+            "en-HK-YanNeural",
+            "en-IE-ConnorNeural",
+            "en-IE-EmilyNeural",
+            "en-IN-NeerjaExpressiveNeural",
+            "en-IN-NeerjaNeural",
+            "en-IN-PrabhatNeural",
+            "en-KE-AsiliaNeural",
+            "en-KE-ChilembaNeural",
+            "en-NG-AbeoNeural",
+            "en-NG-EzinneNeural",
+            "en-NZ-MitchellNeural",
+            "en-NZ-MollyNeural",
+            "en-PH-JamesNeural",
+            "en-PH-RosaNeural",
+            "en-SG-LunaNeural",
+            "en-SG-WayneNeural",
+            "en-TZ-ElimuNeural",
+            "en-TZ-ImaniNeural",
+            "en-US-AnaNeural",
+            "en-US-AndrewNeural",
+            "en-US-AriaNeural",
+            "en-US-AvaNeural",
+            "en-US-BrianNeural",
+            "en-US-ChristopherNeural",
+            "en-US-EmmaNeural",
+            "en-US-EricNeural",
+            "en-US-GuyNeural",
+            "en-US-JennyNeural",
+            "en-US-MichelleNeural",
+            "en-US-RogerNeural",
+            "en-US-SteffanNeural",
+            "en-ZA-LeahNeural",
+            "en-ZA-LukeNeural",
+            "ko-KR-HyunsuNeural",
+            "ko-KR-InJoonNeural",
+            "ko-KR-SunHiNeural",
+            "ru-RU-DmitryNeural",
+            "ru-RU-SvetlanaNeural",
+            "fr-BE-CharlineNeural",
+            "fr-BE-GerardNeural",
+            "fr-CA-AntoineNeural",
+            "fr-CA-JeanNeural",
+            "fr-CA-SylvieNeural",
+            "fr-CA-ThierryNeural",
+            "fr-CH-ArianeNeural",
+            "fr-CH-FabriceNeural",
+            "fr-FR-DeniseNeural",
+            "fr-FR-EloiseNeural",
+            "fr-FR-HenriNeural",
+            "fr-FR-RemyMultilingualNeural",
+            "fr-FR-VivienneMultilingualNeural",
+            "de-AT-IngridNeural",
+            "de-AT-JonasNeural",
+            "de-CH-JanNeural",
+            "de-CH-LeniNeural",
+            "de-DE-AmalaNeural",
+            "de-DE-ConradNeural",
+            "de-DE-FlorianMultilingualNeural",
+            "de-DE-KatjaNeural",
+            "de-DE-KillianNeural",
+            "de-DE-SeraphinaMultilingualNeural"
+        ],
+        "default": "zh-CN-XiaoyiNeural"
+    }
+}

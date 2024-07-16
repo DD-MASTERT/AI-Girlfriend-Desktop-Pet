@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Centered Images and Text</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* 隐藏滚动条 */
+            background-color: beige;
+        }
+        .images-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            width: 100%; /* 容器宽度为100% */
+            margin-bottom: 5px; /* 图片容器与文本之间的间距 */
+            
+        }
+        img {
+            max-width: 20vw; /* 图片最大宽度为视窗宽度的40% */
+            max-width: 20vw;/* 高度自适应 */
+            margin: 0 10px; /* 图片之间的间距 */
+        }
+        .text {
+            text-align: center;
+
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="images-container">
+        <img src="../ico/vx.jpg" alt="Image 1">
+        <img src="../ico/zfb.jpg" alt="Image 2">
+        <img src="../ico/qun.jpg" alt="Image 2">
+    </div>
+    <div class="text">
+        有任何使用问题可以扫码加vx群
+    </div>
+</body>
+</html>
