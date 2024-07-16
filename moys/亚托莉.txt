@@ -1,0 +1,5 @@
+GPT_model_path=GPT_weights/亚托莉-e20.ckpt
+SoVITS_model_path=SoVITS_weights/亚托莉_e25_s4000.pth
+ref_audio_path=moys\audio\わかります味見できるよう味覚センサーも搭載です高性能ですから.wav
+ref_text=わかります，味見できるよう味覚センサーも搭載です，高性能ですから。
+ref_audio_language=日文

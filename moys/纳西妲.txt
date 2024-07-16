@@ -1,0 +1,5 @@
+GPT_model_path=GPT_weights/纳西妲-e10.ckpt
+SoVITS_model_path=SoVITS_weights/纳西妲_e15_s1830.pth
+ref_audio_path=moys\audio\audio.wav
+ref_text=如果是说他被杀那个神秘事件与惊奇者之类的
+ref_audio_language=中文

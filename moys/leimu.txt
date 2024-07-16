@@ -1,0 +1,5 @@
+GPT_model_path=GPT_weights/leimu-e20.ckpt
+SoVITS_model_path=SoVITS_weights/leimu_e25_s625.pth
+ref_audio_path=moys\audio\お出かけですかでは転んでも泣かないおまじないを.wav
+ref_text=お出かけですか，では転んでも泣かないおまじないを
+ref_audio_language=日文
