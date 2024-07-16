@@ -123,12 +123,25 @@ def gsvpath(config_path = 'api/gsv.json'):
     global audio0,audio,aumotion_state,live2dlook_state,live2dtmotion_state 
     with open(config_path, 'r', encoding='utf-8') as file:
         config = json.load(file)
-    gsvpath = config['gsv']
+
     live2dlook_state = not config['live2dlook_state']
     live2dtmotion_state = not config['live2dtmotion_state']
     aumotion_state = not config['aumotion_state']
-    audio0 =  os.path.join(gsvpath, "moys", "temp", "audio.wav")
-    audio =  os.path.join(gsvpath, "moys", "temp", "audio1.wav")
+    try:
+        with open(config_path, 'r', encoding='utf-8') as file:
+            config = json.load(file)
+        gsvpath = config.get('gsv')  # 使用get方法以避免KeyError
+        if gsvpath and os.path.exists(gsvpath):  # 检查gsvpath是否非空并且路径存在
+            audio0 = os.path.join(gsvpath, "moys", "temp", "audio.wav")
+            audio = os.path.join(gsvpath, "moys", "temp", "audio1.wav")
+        else:
+            print("配置中未指定有效的'gsv'路径，或路径不存在。")
+    except FileNotFoundError:
+        print(f"配置文件 {config_path} 未找到。")
+    except json.JSONDecodeError:
+        print(f"配置文件 {config_path} 格式错误，无法解析JSON。")
+    except Exception as e:
+        print(f"发生了一个错误：{e}")
 
 def read_config_file_and_save_defaults(file_path ='config/config.json'):
     global conf,live2dver
@@ -2263,25 +2276,33 @@ def write_position_to_file():
         print(f"写入文件时发生错误: {e}")
 
 def copy_moys_folder():
-    config_path ='api/gsv.json'
-    with open(config_path, 'r', encoding='utf-8') as file:
-        config = json.load(file)
-    gsvpath = config['gsv']
-    # 定义源文件夹路径
-    src_folder = os.path.join(gsvpath, 'moys')    
-    # 检查源文件夹是否存在
+    config_path = 'api/gsv.json'
+    try:
+        with open(config_path, 'r', encoding='utf-8') as file:
+            config = json.load(file)
+        gsvpath = config.get('gsv', '')  # 使用get方法提供默认值，以防'gsv'键不存在
+    except FileNotFoundError:
+        print(f"配置文件 {config_path} 未找到。")
+        return
+    except json.JSONDecodeError:
+        print(f"配置文件 {config_path} 格式错误，无法解析JSON。")
+        return
+
+    if not gsvpath:
+        print("配置中未指定有效的'gsv'路径。")
+        return
+
+    src_folder = os.path.join(gsvpath, 'moys')
     if not os.path.exists(src_folder):
         print(f"源文件夹 {src_folder} 不存在。")
         return
-    # 获取当前工作目录
-    current_dir = os.getcwd() 
-    # 构建目标文件夹路径
+
+    current_dir = os.getcwd()
     dst_folder = os.path.join(current_dir, 'moys')
-    # 如果目标文件夹已存在，则删除它
     if os.path.exists(dst_folder):
         shutil.rmtree(dst_folder)
         print(f"已删除当前目录下的原有文件夹 {dst_folder}")
-    # 复制文件夹到当前工作目录
+
     shutil.copytree(src_folder, dst_folder)
     print(f"文件夹 {src_folder} 已成功复制到当前目录。")
 
