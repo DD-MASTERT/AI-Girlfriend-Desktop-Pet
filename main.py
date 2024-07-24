@@ -1,12 +1,12 @@
 # my3.py
 # 标准库模块
-import ctypes
-# 定义一个函数来隐藏控制台窗口
-def hide_console_window():
-    console_window = ctypes.windll.kernel32.GetConsoleWindow()
-    if console_window != 0:
-        ctypes.windll.user32.ShowWindow(console_window, 0)
-hide_console_window()
+# import ctypes
+# # 定义一个函数来隐藏控制台窗口
+# def hide_console_window():
+#     console_window = ctypes.windll.kernel32.GetConsoleWindow()
+#     if console_window != 0:
+#         ctypes.windll.user32.ShowWindow(console_window, 0)
+
 import io
 import math
 import os
@@ -20,26 +20,14 @@ import json
 import signal
 import webbrowser
 
-# 获取当前工作目录
-current_dir = os.getcwd()
-
-# 定义FFmpeg和FFprobe的相对路径
-relative_ffmpeg_path = 'bin/ffmpeg.exe'
-relative_ffprobe_path = 'bin/ffprobe.exe'
 
 
-# 将相对路径与当前工作目录拼接成绝对路径
-ffmpeg_path = os.path.join(current_dir, relative_ffmpeg_path)
-ffprobe_path = os.path.join(current_dir, relative_ffprobe_path)
-
-# 设置环境变量
+# 设置 FFMPEG_PATH 环境变量
+ffmpeg_path = os.path.join(os.getcwd(), 'sensvoice', 'ffmpeg', 'bin')
 os.environ['FFMPEG_PATH'] = ffmpeg_path
-os.environ['FFPROBE_PATH'] = ffprobe_path
 
-
-# 打印设置的环境变量以确认（可选）
-print("FFmpeg路径: ", os.environ['FFMPEG_PATH'])
-print("FFprobe路径: ", os.environ['FFPROBE_PATH'])
+# 将 FFMPEG_PATH 临时添加到 PATH 环境变量中
+os.environ['PATH'] += os.pathsep + ffmpeg_path
 
 
 # 第三方库模块
@@ -53,6 +41,9 @@ from functools import partial
 import shutil
 import subprocess
 from my4 import update_and_copy_folders
+import sounddevice as sd
+import numpy as np
+import soundfile as sf
 
 
 
@@ -258,6 +249,18 @@ class SettingsDialog(QDialog):
         top_layout13.addWidget(self.bubble_duration)
 
         top_layout.addLayout(top_layout13)
+
+        top_layout132 = QHBoxLayout()
+        top_layout132.addWidget(QLabel('气泡宽度'))
+        self.talkkuan = QLineEdit()
+        top_layout132.addWidget(self.talkkuan)
+        # top_layout.addLayout(top_layout131)
+
+        # top_layout132 = QHBoxLayout()
+        top_layout132.addWidget(QLabel('字体尺寸'))
+        self.talksize = QLineEdit()
+        top_layout132.addWidget(self.talksize)
+        top_layout.addLayout(top_layout132)                  
                 # 按钮
         self.live2d = QPushButton('视线追踪/关闭')
         self.live2d.clicked.connect(self.live2dlook)
@@ -321,7 +324,7 @@ class SettingsDialog(QDialog):
 
 
         # 保存并更新按钮1
-        self.save_and_update1 = QPushButton('保存应用(live2D)')
+        self.save_and_update1 = QPushButton('保存应用(左边部分)')
         self.save_and_update1.clicked.connect(self.on_save_and_update1)
         top_layout.addWidget(self.save_and_update1)
 
@@ -355,6 +358,11 @@ class SettingsDialog(QDialog):
         self.gsv_model.addItems(['GSV模型1', 'GSV模型2'])
         bottom_layout21.addWidget(self.gsv_model)
         bottom_layout.addLayout(bottom_layout21)
+
+        # 保存并更新按钮
+        self.opengsv = QPushButton('打开gpt-sovits推理窗口')
+        self.opengsv.clicked.connect(self.run_bat_file)
+        bottom_layout.addWidget(self.opengsv)  
         
         bottom_layout22 = QHBoxLayout()
         bottom_layout22.addWidget(QLabel('预设模版:'))
@@ -396,19 +404,6 @@ class SettingsDialog(QDialog):
         bottom_layout26.addWidget(self.reply)
         bottom_layout.addLayout(bottom_layout26)
 
-        bottom_layout27 = QHBoxLayout()
-        # api模式下拉菜单
-        self.talk = QComboBox()
-        self.talk.addItems(['回复1', '回复2'])
-        bottom_layout27.addWidget(QLabel('聊天模式'))
-        bottom_layout27.addWidget(self.talk)
-        bottom_layout.addLayout(bottom_layout27)
-
-
-        # 保存并更新按钮
-        self.save_and_update = QPushButton('保存应用(GSV)')
-        self.save_and_update.clicked.connect(self.on_save_and_update)
-        bottom_layout.addWidget(self.save_and_update)
 
         bottom_layout28 = QHBoxLayout()
         self.cosy = QComboBox()
@@ -431,17 +426,26 @@ class SettingsDialog(QDialog):
         # bottom_layout.addLayout(bottom_layout28)
 
                 # 按钮
-        self.edgebioa = QPushButton('打开微软语音选项参考表格')
+        self.edgebioa = QPushButton('打开微软语音参考表,表里有的是免费使用的')
         self.edgebioa.clicked.connect(self.edgebiaoge)
         bottom_layout.addWidget(self.edgebioa)
 
-
-
+      
         self.reshdata1 = QPushButton('刷新全部配置')
         self.reshdata1.clicked.connect(self.reshdata)
         bottom_layout.addWidget(self.reshdata1)        
 
-
+        bottom_layout27 = QHBoxLayout()
+        # api模式下拉菜单
+        self.talk = QComboBox()
+        self.talk.addItems(['回复1', '回复2'])
+        bottom_layout27.addWidget(QLabel('聊天模式'))
+        bottom_layout27.addWidget(self.talk)
+        bottom_layout.addLayout(bottom_layout27)
+        # 保存并更新按钮
+        self.save_and_update = QPushButton('保存应用(右边部分)')
+        self.save_and_update.clicked.connect(self.on_save_and_update)
+        bottom_layout.addWidget(self.save_and_update)  
 
 
         main_layout.addLayout(bottom_layout)  # 将第二行的布局添加到主布局
@@ -487,7 +491,7 @@ class SettingsDialog(QDialog):
                 border-radius: 12.5px;
                 padding: 5px;
                 color: black;
-                min-width: 12px;
+                max-width: 100px;
             }
             QLineEdit:hover {
                 background-color: rgba(0, 0, 0, 1);
@@ -553,6 +557,34 @@ class SettingsDialog(QDialog):
         self.apire = None
         self.apiretime = QTimer(self)
         self.apiretime.timeout.connect(self.apiret)
+
+    def run_bat_file(self):
+        audio_player_thread = AudioPlayerThread('config/tsaudio/audio(9).wav')
+        audio_player_thread.start()  
+        config_path = 'api/gsv.json'
+        try:
+            with open(config_path, 'r', encoding='utf-8') as file:
+                config = json.load(file)
+            gsvpath = config.get('gsv')  # 使用get方法以避免KeyError
+            if gsvpath and os.path.exists(gsvpath):  # 检查gsvpath是否非空并且路径存在
+                bat_file_path = os.path.join(gsvpath, "直接推理.bat")
+            else:
+                print("配置中未指定有效的'gsv'路径，或路径不存在。")
+        except FileNotFoundError:
+            print(f"配置文件 {config_path} 未找到。")
+        except json.JSONDecodeError:
+            print(f"配置文件 {config_path} 格式错误，无法解析JSON。")
+        except Exception as e:
+            print(f"发生了一个错误：{e}")
+        # 获取批处理文件的目录
+        # bat_file_path = r"E:/2/GPT-sovits/GPT-SoVITS-beta0706fix1/GPT-SoVITS-beta0706/直接推理.bat"
+        bat_file_dir = os.path.dirname(bat_file_path)
+
+        # 在新窗口中运行批处理文件，并设置工作目录
+        subprocess.Popen(f'start cmd /K "cd /D {bat_file_dir} && {bat_file_path}"', shell=True)
+        # 返回到当前工作目录
+        os.chdir(os.getcwd())   
+
     def yulanm(self):
         motion = self.yulanmotion.currentText()       
         config_file_path = 'config/motion.json'
@@ -614,22 +646,31 @@ class SettingsDialog(QDialog):
         webbrowser.open(file_url)
 
     def openapiexe(self):
+        audio_player_thread = AudioPlayerThread('config/tsaudio/audio(6).wav')
+        audio_player_thread.start()          
         exe_path = 'api/api2.exe'
 
         # 启动exe应用程序
         subprocess.Popen(exe_path)
     def closeapiexe(self):
         url = "http://localhost:8000/shutdown"
-        response = requests.post(url)
-
-        print(response.status_code)
-        print(response.text)
+        try:
+            response = requests.post(url)
+            print(response.status_code)
+            print(response.text)
+            if response.status_code == 200:
+                audio_player_thread = AudioPlayerThread('config/audio5.wav')
+                audio_player_thread.start()
+            else:
+                print("错误")
+        except requests.RequestException as e:
+            print(f"请求错误: {e}")
 
     def open_server(self):
         thread = threading.Thread(target=self.openapiexe)
         thread.start()            
         self.apire = False
-        self.timerapi.start(200)
+        self.timerapi.start(400)
         self.apiretime.start(50)
 
     def close_server(self):
@@ -637,12 +678,13 @@ class SettingsDialog(QDialog):
         thread.start()
         self.timerapi.stop()
         self.apiretime.stop()
-        audio_player_thread = AudioPlayerThread('config/audio5.wav')
-        audio_player_thread.start()
+
          
  
 
     def winapi(self):
+        print("启动或关闭中，请等待直到看到绿色字样出现(除开gpt-sovits语音模式只需要几秒钟)")
+    
         global conf
         config_file_path = 'config/config.json'
         with open(config_file_path, 'r', encoding='utf-8') as f:
@@ -730,6 +772,7 @@ class SettingsDialog(QDialog):
     def duault(self):
         global aumotion_state,live2dtmotion_state,live2dlook_state
         aumotion_state = not aumotion_state
+        self.model_window.aumotion = aumotion_state        
         motiontime = int(self.model_window.motiontime)
         if aumotion_state:
             self.model_window.motion_timer.start(motiontime*1000)           
@@ -743,6 +786,7 @@ class SettingsDialog(QDialog):
     def aumotion(self):
         global aumotion_state
         aumotion_state = not aumotion_state
+        self.model_window.aumotion = aumotion_state
         motiontime = int(self.model_window.motiontime)
         if aumotion_state:
             self.model_window.motion_timer.start(motiontime*1000)
@@ -855,6 +899,8 @@ class SettingsDialog(QDialog):
         self.character_size.setText(config_data.get('CharacterSize', {}).get('default', ''))
         self.fps.setText(config_data.get('FPS', {}).get('default', ''))
         self.caiyang.setText(config_data.get('CAI', {}).get('default', ''))
+        self.talkkuan.setText(config_data.get('talkkuan', {}).get('default', '')) 
+        self.talksize.setText(config_data.get('talksize', {}).get('default', ''))                  
         self.bubble_duration.setText(config_data.get('BubbleDuration', {}).get('default', ''))
         self.mouth_sync.setText(config_data.get('MouthSync', {}).get('default', ''))
         self.play_frequency.setText(config_data.get('PlayFrequency', {}).get('default', ''))
@@ -871,7 +917,9 @@ class SettingsDialog(QDialog):
             "Live2DModel": self.live2d_model.currentText(),
             "CharacterSize": self.character_size.text(),
             "FPS": self.fps.text(),
-            "CAI": self.caiyang.text(),            
+            "CAI": self.caiyang.text(),
+            "talkkuan": self.talkkuan.text(),
+            "talksize": self.talksize.text(),                          
             "MouseThrough": self.mouse_through.currentText(),
             "BubbleDuration": self.bubble_duration.text(),
             "MouthSync": self.mouth_sync.text(),
@@ -929,6 +977,8 @@ class SettingsDialog(QDialog):
             "CharacterSize": self.character_size.text(),
             "FPS": self.fps.text(),
             "CAI": self.caiyang.text(),
+            "talkkuan": self.talkkuan.text(),
+            "talksize": self.talksize.text(),           
             "MouseThrough": self.mouse_through.currentText(),
             "Top": self.top.currentText(),
             "BubbleDuration": self.bubble_duration.text(),
@@ -993,7 +1043,9 @@ class SettingsDialog(QDialog):
         left = conf["MouseThrough"]
         fps = int(conf["FPS"])
         caiyang = int (conf["CAI"])       
-        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang)
+        talkkuan = conf["talkkuan"]
+        talksize = conf["talksize"]
+        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize)
         self.model_window.uptop(top,left)
 
     # def talkset(self):
@@ -1031,8 +1083,10 @@ class SettingsDialog(QDialog):
         left = conf["MouseThrough"]
         fps = conf["FPS"]
         caiyang = conf["CAI"]
+        talkkuan = conf["talkkuan"]
+        talksize = conf["talksize"]
         self.model_window.reload_model(size_str, width, height)
-        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang)
+        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize)
         self.model_window.uptop(top,left)
         self.loadyulan()
         upmotions()
@@ -1181,10 +1235,35 @@ class AppWindow(QWidget):
         self.layout = QHBoxLayout()  # 或者 QHBoxLayout(), 取决于您的需求
 
   
-        
-        # # 设置字体
-        # font = QFont('Roboto', 15)
-        # self.setFont(font)
+        self.buttontalk = QPushButton("讲话")
+        self.buttontalk.setCheckable(True)  # 设置按钮为可选中状态
+        self.buttontalk.setChecked(False)   # 默认不选中
+        self.buttontalk.clicked.connect(self.saytalk)
+    
+        # 设置按钮样式
+        self.buttontalk.setStyleSheet("""
+            QPushButton {
+                font-family: WenQuanYi Zen Hei; /* 字体 */
+                background-color: rgba(0, 0, 0, 0.01); /* 背景颜色和透明度 */
+                font: bold 20px; /* 字体大小和粗细 */
+                border-radius: 10px; /* 边框圆角 */
+                padding: 13px; /* 内边距 */
+                color: rgba(255, 255, 255, 0.01); /* 文本颜色 */
+                text-align: center; /* 文本对齐方式 */
+                width: 37.5px; /* 按钮宽度 */
+                height: 30px;                      
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.7); /* 选中时的背景颜色和透明度 */
+                color: black; /* 文本颜色 */
+                /* 其他选中时的样式属性 */
+            }
+            QPushButton:Checked {
+                background-color: rgba(0, 0, 0, 1.0); /* 选中时的背景颜色和透明度 */
+                color: white; /* 文本颜色 */
+                /* 其他选中时的样式属性 */
+            }                                      
+        """)
 
 
         # 创建发送按钮
@@ -1216,6 +1295,7 @@ class AppWindow(QWidget):
         self.input_box.setStyleSheet("QLineEdit { font-family: WenQuanYi Zen Hei;background-color: rgba(255, 255, 255, 0.9);font: bold 20px;border-radius: 10px; padding: 12.5px;color: black;text-align: center;width:300px }")
         self.input_box.setPlaceholderText("'发送预设，'发送模版内容，'新建对话'重新开始对话")
         # 将输入框和按钮添加到布局中
+        self.layout.addWidget(self.buttontalk)       
         self.layout.addWidget(self.input_box)
         self.layout.addWidget(self.button)
 
@@ -1224,6 +1304,9 @@ class AppWindow(QWidget):
 
         # 连接按钮的 clicked 信号到发送函数
         self.button.clicked.connect(self.send_input)
+
+        self.buttontalkkey = QShortcut(QKeySequence("Up"), self)
+        self.buttontalkkey.activated.connect(self.buttontalk.click)  
 
         # 创建一个快捷键，绑定回车键到按钮的点击事件
         self.return_shortcut = QShortcut(QKeySequence("Return"), self)
@@ -1288,6 +1371,54 @@ class AppWindow(QWidget):
 
         # 设置窗口的布局
         self.setLayout( self.layout)
+
+
+    def saytalk(self):
+        def star():
+            output_folder = 'sensvoice/recorded_audios'
+            filename = "audio.wav"
+            filename1 = "audio1.wav"            
+            sample_rate = 44100
+            audio_data = []
+            
+            def callback(indata, frames, time, status):
+                """这是录音的回调函数"""
+                if status:
+                    print(status)
+                audio_data.append(indata.copy())
+            
+            stream = sd.InputStream(samplerate=sample_rate, channels=2, callback=callback)
+            
+            # 检查按钮是否被选中
+            if self.buttontalk.isChecked():
+                print("开始录音...")
+               
+                with stream:
+                    while self.buttontalk.isChecked():  # 保持录音直到按钮未选中
+                        pass  # 循环等待，直到按钮状态改变
+                print("录音结束。")
+                
+                audio_data = np.concatenate(audio_data, axis=0)
+                if not os.path.exists(output_folder):
+                    os.makedirs(output_folder)
+                
+                # 保存音频数据到指定文件
+                output_path = os.path.join(output_folder, filename)
+                output_path1 = os.path.join(output_folder, filename1)                
+                sf.write(output_path, audio_data, sample_rate)
+                sf.write(output_path1, audio_data, sample_rate)
+                print(f"音频已保存到 {output_path}")
+                url = "http://localhost:1111/run/"
+                response = requests.post(url)
+                print(response.status_code)
+                print(response)
+                # self.input_box.setText(response.text)
+                self.send_text_to_server(response.text, self.callback)
+
+            else:
+                print('录音未开始')
+        starth = threading.Thread(target=star) 
+        starth.start() 
 
     def uppos(self):
         global x, y
@@ -1815,6 +1946,12 @@ class MainWindow(QMainWindow):
         self.toggle_action.triggered.connect(self.toggle_window)
         self.menu.addAction(self.toggle_action)
 
+        self.sayapi = QAction(QIcon('ico/1.png'), "语音/关闭", self)
+        self.sayapi.setCheckable(True)
+        self.sayapi.setChecked(False)
+        self.sayapi.triggered.connect(self.opensayapi)
+        self.menu.addAction(self.sayapi)        
+
         exit_action = QAction(QIcon('ico/2.png'), "退出", self)
         exit_action.triggered.connect(self.exit_app)
         self.menu.addAction(exit_action)
@@ -1891,25 +2028,39 @@ class MainWindow(QMainWindow):
 
 
         self.buju2 = QHBoxLayout()
-        self.buju2.addWidget(QLabel('填写glm4的token'))
+        self.buju2.addWidget(QLabel('glm4的refresh_token和assistant_id'))
         self.kuang2 = QLineEdit()
         self.buju2.addWidget(self.kuang2)
-
+        self.kuang21 = QLineEdit()
+        self.buju2.addWidget(self.kuang21)
         self.buto3 = QPushButton('打开网站')
         self.buto3.clicked.connect(self.openweb)
         self.buju2.addWidget(self.buto3) 
 
         self.buju3 = QHBoxLayout()
         self.llm = QComboBox()
-        self.llm.addItems(['glm4(默认)', 'kimi(每次打开要手动登录)'])
+        self.llm.addItems(['glm4', 'kimi' ,'deepseekv2','ollama'])
+        self.ollamabut = QPushButton('加载ollama模型(注意ollama端口要在运行)')
+        self.ollamabut.clicked.connect(self.configollama)        
         self.buju3.addWidget(QLabel('聊天模型'))
         self.buju3.addWidget(self.llm)
+        self.buju3.addWidget(self.ollamabut)
 
         self.buju4 = QHBoxLayout()
-        self.option = QComboBox()
-        self.option.addItems(['开启', '关闭'])
-        self.buju4.addWidget(QLabel('是否开启无头模式(glm4))'))
-        self.buju4.addWidget(self.option)
+        self.buju4.addWidget(QLabel('kimi的refresh_token'))
+        self.k1 = QLineEdit()
+        self.buju4.addWidget(self.k1)
+        self.b1 = QPushButton('打开网站')
+        self.b1.clicked.connect(self.openwebkimi)
+        self.buju4.addWidget(self.b1)
+
+        self.buju41 = QHBoxLayout()
+        self.buju41.addWidget(QLabel('deepseekv2的usertoken'))
+        self.k2 = QLineEdit()
+        self.buju41.addWidget(self.k2)
+        self.b2 = QPushButton('打开网站')
+        self.b2.clicked.connect(self.openwebdeep)
+        self.buju41.addWidget(self.b2)        
 
         self.buju5 = QHBoxLayout()
         self.buju5.addWidget(QLabel('腾讯翻译SecretId和SecretKey'))
@@ -1966,9 +2117,10 @@ class MainWindow(QMainWindow):
         
         # 将水平布局添加到中心小部件的垂直布局中
         self.main_layout.addLayout(self.buju)
-        self.main_layout.addLayout(self.buju2)
         self.main_layout.addLayout(self.buju3)
+        self.main_layout.addLayout(self.buju2)
         self.main_layout.addLayout(self.buju4)
+        self.main_layout.addLayout(self.buju41)        
         self.main_layout.addLayout(self.buju5)
         self.main_layout.addLayout(self.buju6)
         self.main_layout.addLayout(self.buju7)
@@ -2067,6 +2219,40 @@ class MainWindow(QMainWindow):
         self.load_config_and_set_widgets()
 
         self.setWindowTitle("配置菜单")
+    def configollama(self): 
+        audio_player_thread = AudioPlayerThread('config/tsaudio/audio(7).wav')
+        audio_player_thread.start()          
+        def generate_response(config_file="api/ollama.json"):
+            # Load JSON config
+            with open(config_file, 'r', encoding='utf-8') as json_file:
+                config = json.load(json_file)
+            
+            api_url = config["api_url"]
+            model = config["model"]
+            prompt = config["prompt"]
+            options = config["options"]
+            
+            data = {
+                "model": model,
+                "prompt": prompt,
+                "stream": False,  # Assuming stream is always False based on your example
+                "options": options
+            }
+            
+            headers = {
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.post(api_url, headers=headers, data=json.dumps(data))
+            
+            if response.status_code == 200:
+                audio_player_thread = AudioPlayerThread('config/tsaudio/audio(8).wav')
+                audio_player_thread.start()          
+                print(response.text)
+            else:
+                raise Exception(f"Request failed with status code {response.status_code}: {response.text}")
+        ollama = threading.Thread(target=generate_response)
+        ollama.start()
     def dsup(self):
         # 定义 HTML 文件的相对路径
         relative_file_path = 'config/dsup.html'
@@ -2090,8 +2276,13 @@ class MainWindow(QMainWindow):
         
         # 更新api/api.json配置
         api_config['TOKEN'] = self.kuang2.text()
-        api_config['LLM'] = 'glm' if self.llm.currentIndex() == 0 else 'kimi'
-        api_config['OPTIONS'] = self.option.currentIndex() == 0
+        api_config['LLM'] = (
+            'glm' if self.llm.currentIndex() == 0 else
+            'kimi' if self.llm.currentIndex() == 1 else
+            'deepseek' if self.llm.currentIndex() == 2 else
+            'ollama'  # 假设 currentIndex 为 2 时代表 'ollama'
+        )
+
         api_config['TXSecretId'] = self.kuang3.text()
         api_config['TXSecretKey'] = self.kuang4.text()
         api_config['TXS'] = self.kuang5.text()
@@ -2111,7 +2302,10 @@ class MainWindow(QMainWindow):
         
         # 更新api/gsv.json配置
         gsv_config['gsv'] = self.kuang.text()
-        
+        gsv_config['chatglm_refresh_token'] = self.kuang2.text()
+        gsv_config['assistant_id'] = self.kuang21.text()                
+        gsv_config['refresh_token'] = self.k1.text() 
+        gsv_config['usertoken'] = self.k2.text()                
         # 写回api/gsv.json配置文件
         with open('api/gsv.json', 'w', encoding='utf-8') as file:
             json.dump(gsv_config, file, ensure_ascii=False, indent=4)
@@ -2129,12 +2323,14 @@ class MainWindow(QMainWindow):
 
         # 设置聊天模型
         if config['LLM'] == 'glm':
-            self.llm.setCurrentIndex(0)  # 选择glm4(默认)
+            self.llm.setCurrentIndex(0)  # 选择glm4
+        elif config['LLM'] == 'kimi':
+            self.llm.setCurrentIndex(1)  # 选择kimi
+        elif config['LLM'] == 'deepseekv2':
+            self.llm.setCurrentIndex(2) 
         else:
-            self.llm.setCurrentIndex(1)  # 选择kimi(每次打开要手动登录)
+            self.llm.setCurrentIndex(3)               
 
-        # 设置是否开启无头模式
-        self.option.setCurrentIndex(0 if config['OPTIONS'] else 1)
 
         # 设置腾讯翻译SecretId和SecretKey
         self.kuang3.setText(config['TXSecretId'])
@@ -2164,18 +2360,27 @@ class MainWindow(QMainWindow):
         config_path1 = 'api/gsv.json'
         with open(config_path1, 'r', encoding='utf-8') as file:
             config1 = json.load(file)
-            self.kuang.setText(config1['gsv'])   
+            self.kuang.setText(config1['gsv'])
+            self.kuang2.setText(config1['chatglm_refresh_token'])
+            self.kuang21.setText(config1['assistant_id'])              
+            self.k1.setText(config1['refresh_token'])
+            self.k2.setText(config1['usertoken'])               
 
     def openweb(self):
-                # 检查谷歌浏览器是否安装
-        chrome_path = os.path.join(os.getenv("ProgramFiles"), "Google", "Chrome", "Application", "chrome.exe")
-        if os.path.exists(chrome_path):
-            # 如果谷歌浏览器安装，使用默认浏览器打开网页
+        try:
             webbrowser.open('https://chatglm.cn/')
-        else:
-            # 如果没有安装谷歌浏览器，提示用户下载
-            self.kuang2.setText("请下载谷歌浏览器")
-
+        except Exception as e:
+            self.kuang2.setText(f"An error occurred: {e}")
+    def openwebkimi(self):
+        try:
+            webbrowser.open('https://kimi.moonshot.cn/')
+        except Exception as e:
+            self.kuang2.setText(f"An error occurred: {e}")
+    def openwebdeep(self):
+        try:
+            webbrowser.open('https://chat.deepseek.com/')
+        except Exception as e:
+            self.kuang2.setText(f"An error occurred: {e}")            
     def selectDirectory(self):
         # 弹出文件夹选择对话框
         directory = QFileDialog.getExistingDirectory(self, "选择目录")
@@ -2222,7 +2427,37 @@ class MainWindow(QMainWindow):
             menu_width = self.menu.sizeHint().width()  # 获取菜单的宽度
             pos = QPoint(cursor_pos.x()- menu_width, cursor_pos.y() - menu_height)  # 调整 Y 坐标
             self.menu.popup(pos)  # 在调整后的位置显示菜单
+    def opensayapi(self):
+        no = os.getcwd() 
+        bat_file_path = os.path.join(no,"sensvoice", "api.bat")
+        bat_file_dir = os.path.dirname(bat_file_path)
+        if self.sayapi.isChecked():
+            def s():
+                try:
+                    # bat_file_dir = os.path.dirname(batch_file_path)
 
+                    # 在新窗口中运行批处理文件，并设置工作目录
+                    subprocess.Popen(f'start cmd /K "cd /D {bat_file_dir} && {bat_file_path}"', shell=True)
+                    # 返回到当前工作目录
+                    os.chdir(os.getcwd())  
+                except subprocess as e:
+                    print("An error")
+
+            ss = threading.Thread(target=s)
+            ss.start()        
+        else:
+            def d():
+                try:
+                    url = "http://localhost:1111/shutdown"
+                    response = requests.post(url)
+
+                    print(response.status_code)
+                    print(response.text)  
+                except requests as e:
+                    # 打印错误信息
+                    print("error", e) 
+            dd = threading.Thread(target=d)
+            dd.start()                                 
     def toggle_window(self):
         # 根据 QAction 的选中状态来显示或隐藏窗口
         if self.toggle_action.isChecked():

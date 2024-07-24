@@ -4,5 +4,10 @@ PySide2==5.15.2.1
 PySide2-Fluent-Widgets==1.5.8
 pygame==2.6.0
 pydub==0.25.1
+ounddevice==0.4.7
+numpy==1.26.0
+soundfile==0.12.1
+PyOpenGL==3.1.7
+
 
 

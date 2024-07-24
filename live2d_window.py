@@ -172,6 +172,8 @@ class Win(QOpenGLWidget):
     aumotion = True
     fps =int (30)
     caiyang =int (32)
+    talkkuan = conf["talkkuan"]
+    talksize = conf["talksize"]   
 
     if (top == '开启') and (left == '开启'):
         winqt = Qt.WindowType.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
@@ -269,7 +271,7 @@ class Win(QOpenGLWidget):
         self.show()
 
 
-    def updata(self,motiontime,mou,motionname,lasttime,fps,caiyang):
+    def updata(self,motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize):
         self.motiontime = motiontime
         self.motion_timer.stop()
         motiontime = int(self.motiontime)
@@ -279,6 +281,8 @@ class Win(QOpenGLWidget):
         self.lasttime = int(lasttime)*1000
         self.fps = fps
         self.caiyang = caiyang
+        self.talkkuan =talkkuan
+        self.talksize =talksize
 
 
     def initializeGL(self) -> None:
@@ -333,7 +337,7 @@ class Win(QOpenGLWidget):
     def update_model_drag(self, event: QMouseEvent):
         # Make the model look at the mouse cursor
         # self.model.Drag(int(event.pos().x()), int(event.pos().y()))
-        self.model.Drag(int(event.pos().x()), int(event.pos().y()))
+        self.model.Drag(int(event.pos().x()*0.5), int(event.pos().y()*0.5))
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
@@ -393,7 +397,7 @@ class Win(QOpenGLWidget):
                     current_time = time.time()
                     interval = (current_time - start_time) * 1000  # 将秒转换为毫秒
                     if interval >= 32:
-                        print(f"Interval reached or exceeded 32ms: {interval}ms")
+                        # print(f"Interval reached or exceeded 32ms: {interval}ms")
                         break
                     # 调用StartMotion方法
             self.model.StartMotion("mytalk", 0, live2dv3.MotionPriority.FORCE.value)      
@@ -436,13 +440,13 @@ class Win(QOpenGLWidget):
 
         # 设置新样式，包括背景色、边框阴影等
         new_style = (
-            "font: bold 18px; "
+            f"font: bold {self.talksize}px; "
             "font-family: Microsoft YaHei;"
             "color: black; "
             "border-radius: 10px; "
             "text-align: center; "
             "background-color: rgba(255, 255, 255, 0.7); "  # 设置半透明白色背景
-            "min-width: 200px; "
+            f"min-width: {self.talkkuan}px; "
             "min-height: 50px; "
             "padding: 12px;"       # 添加内边距
             #"border: 2px solid rgba(255, 255, 255, 0.5);" 
@@ -575,7 +579,7 @@ class Win(QOpenGLWidget):
     def reload_model(self, new_model_name, width, height):
         global stopmotiontime
         stopmotiontime = False
-
+        self.motion_timer.stop()
         # 更新模型相关属性
         self.modelname = new_model_name
         self.width = width
