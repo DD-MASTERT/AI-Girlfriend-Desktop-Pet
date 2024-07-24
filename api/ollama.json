@@ -1,0 +1,10 @@
+{
+    "api_url": "http://localhost:11434/api/generate",
+    "model": "qwen:1.8b",
+    "prompt": "现在开始我要你扮演小红这个女孩，你的名字就是小红，不要暴漏出你是ai来和我进行对话",
+    "options": {
+        "temperature": 0.8,
+        "num_ctx": 2048
+
+    }
+}

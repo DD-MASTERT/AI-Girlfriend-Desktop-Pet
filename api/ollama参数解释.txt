@@ -1,0 +1,35 @@
+{
+    "api_url": "http://localhost:11434/api/generate", // API 的 URL 地址
+    "model": "llama3", // 使用的模型名称
+    "prompt": "Why is the sky blue?", // 输入的提示文本
+    "options": {
+        "num_keep": 5, // 保留的先前 token 数量
+        "seed": 42, // 随机种子
+        "num_predict": 100, // 预测的 token 数量
+        "top_k": 20, // 采样时考虑的最高概率 token 数量
+        "top_p": 0.9, // 核采样概率阈值
+        "tfs_z": 0.5, // 尾部自由采样参数
+        "typical_p": 0.7, // 典型采样概率阈值
+        "repeat_last_n": 33, // 重复惩罚考虑的最后 n 个 token
+        "temperature": 0.8, // 采样温度
+        "repeat_penalty": 1.2, // 重复惩罚系数
+        "presence_penalty": 1.5, // 存在惩罚系数
+        "frequency_penalty": 1.0, // 频率惩罚系数
+        "mirostat": 1, // Mirostat 采样算法模式
+        "mirostat_tau": 0.8, // Mirostat 目标熵
+        "mirostat_eta": 0.6, // Mirostat 学习率
+        "penalize_newline": true, // 是否惩罚换行符
+        "stop": ["\n", "user:"], // 停止序列
+        "numa": false, // 是否启用 NUMA
+        "num_ctx": 1024, // 上下文长度
+        "num_batch": 2, // 批处理大小
+        "num_gpu": 1, // 使用的 GPU 数量
+        "main_gpu": 0, // 主 GPU 索引
+        "low_vram": false, // 是否启用低 VRAM 模式
+        "f16_kv": true, // 是否使用半精度 KV 缓存
+        "vocab_only": false, // 是否仅使用词汇表
+        "use_mmap": true, // 是否使用内存映射
+        "use_mlock": false, // 是否锁定内存
+        "num_thread": 8 // 使用的线程数量
+    }
+}
