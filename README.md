@@ -30,7 +30,7 @@ pyinstaller --onefile --icon=a.ico api2.py --add-data="C:\Users\ASUS\AppData\Loc
 #否则会运行报错
 
  ```
-4.克隆安装语音识别SenseVoice的分支仓库安装依赖
+4. 克隆安装语音识别SenseVoice的分支仓库安装依赖
  ```
  cd ../
  git clone https://github.com/DD-MASTERT/SenseVoice.git
@@ -54,4 +54,4 @@ pip install -r requirements.txt
 
 9. coysvoice的补丁替换掉整合包里的api.py即可。
 
-10.其他使用说明可参考b站视频（暂略）
+10. 其他使用说明可参考b站视频（暂略）
