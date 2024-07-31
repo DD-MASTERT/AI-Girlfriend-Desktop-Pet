@@ -44,7 +44,7 @@ from my4 import update_and_copy_folders
 import sounddevice as sd
 import numpy as np
 import soundfile as sf
-
+from GLMAPI import  imagesent
 
 
 
@@ -63,8 +63,9 @@ from PySide2.QtWidgets import QMenu, QFileDialog,QAction
 
 
 # live2d_window 项目特定模块
-from live2d_window import Win, live2dv3,live2dv2,upmotions,live2dver,check_model_version,starmotion,stopmotion
+from live2d_window import Win,upmotions,live2dver,check_model_version,starmotion,stopmotion
 
+from live2d_window import live2dv3,live2dv2
 
 # 创建一个线程类
 class HiddenWindowThread(threading.Thread):
@@ -72,7 +73,7 @@ class HiddenWindowThread(threading.Thread):
         # 在线程执行任何操作之前隐藏窗口
         # hide_console_window()
         super(HiddenWindowThread, self).run()
-        
+ 
 class AudioPlayerThread1(threading.Thread):
     def __init__(self, audio_path):
         super().__init__()
@@ -81,7 +82,8 @@ class AudioPlayerThread1(threading.Thread):
 
     def run(self):
         starmotion()
-        time.sleep(0.45)
+        a = float(conf['sleeptime'])
+        time.sleep(a)
         # 确保在新线程中初始化pygame mixer
         pygame.mixer.init()
         # 加载音频文件
@@ -150,9 +152,8 @@ def read_config_file_and_save_defaults(file_path ='config/config.json'):
         if "default" in value:
             # 保存default值到全局变量
             conf[key] = value["default"]
-    # check_model_version(conf["Live2DModel"])        
-          
-
+    # check_model_version(conf["Live2DModel"])
+appwindow = None            
 
 
 class AudioPlayerThread(threading.Thread):
@@ -245,8 +246,12 @@ class SettingsDialog(QDialog):
         top_layout13 = QHBoxLayout()  
         # 气泡停留时长输入框
         self.bubble_duration = QLineEdit()
-        top_layout13.addWidget(QLabel('气泡停留时长(秒)'))
+        top_layout13.addWidget(QLabel('气泡/秒'))
         top_layout13.addWidget(self.bubble_duration)
+
+        self.mouseinterv = QLineEdit()
+        top_layout13.addWidget(QLabel('口/毫秒25帧'))
+        top_layout13.addWidget(self.mouseinterv)
 
         top_layout.addLayout(top_layout13)
 
@@ -254,14 +259,20 @@ class SettingsDialog(QDialog):
         top_layout132.addWidget(QLabel('气泡宽度'))
         self.talkkuan = QLineEdit()
         top_layout132.addWidget(self.talkkuan)
-        # top_layout.addLayout(top_layout131)
-
-        # top_layout132 = QHBoxLayout()
         top_layout132.addWidget(QLabel('字体尺寸'))
         self.talksize = QLineEdit()
         top_layout132.addWidget(self.talksize)
-        top_layout.addLayout(top_layout132)                  
-                # 按钮
+        top_layout.addLayout(top_layout132)  
+
+        top_layout133 = QHBoxLayout()
+        top_layout133.addWidget(QLabel('语音延迟'))
+        self.sleeptime = QLineEdit()
+        top_layout133.addWidget(self.sleeptime)
+        top_layout133.addWidget(QLabel('视线缩放'))
+        self.lookbili = QLineEdit()
+        top_layout133.addWidget(self.lookbili)
+        top_layout.addLayout(top_layout133)  
+
         self.live2d = QPushButton('视线追踪/关闭')
         self.live2d.clicked.connect(self.live2dlook)
         top_layout.addWidget(self.live2d)
@@ -408,7 +419,7 @@ class SettingsDialog(QDialog):
         bottom_layout28 = QHBoxLayout()
         self.cosy = QComboBox()
         self.cosy.addItems(['回复1', '回复2'])
-        bottom_layout28.addWidget(QLabel('CosyVoice音色'))
+        bottom_layout.addWidget(QLabel('CosyVoice音色'))
         bottom_layout28.addWidget(self.cosy)
         bottom_layout.addLayout(bottom_layout28)
         # bottom_layout.addLayout(bottom_layout28)
@@ -439,7 +450,7 @@ class SettingsDialog(QDialog):
         # api模式下拉菜单
         self.talk = QComboBox()
         self.talk.addItems(['回复1', '回复2'])
-        bottom_layout27.addWidget(QLabel('聊天模式'))
+        bottom_layout.addWidget(QLabel('聊天模式'))
         bottom_layout27.addWidget(self.talk)
         bottom_layout.addLayout(bottom_layout27)
         # 保存并更新按钮
@@ -653,6 +664,7 @@ class SettingsDialog(QDialog):
         # 启动exe应用程序
         subprocess.Popen(exe_path)
     def closeapiexe(self):
+        global isimg
         url = "http://localhost:8000/shutdown"
         try:
             response = requests.post(url)
@@ -661,6 +673,10 @@ class SettingsDialog(QDialog):
             if response.status_code == 200:
                 audio_player_thread = AudioPlayerThread('config/audio5.wav')
                 audio_player_thread.start()
+                isimg = False
+                appwindow.timer4.stop()
+                appwindow.cheaktmer4.stop()
+                appwindow.oldisimg = False                
             else:
                 print("错误")
         except requests.RequestException as e:
@@ -672,6 +688,7 @@ class SettingsDialog(QDialog):
         self.apire = False
         self.timerapi.start(400)
         self.apiretime.start(50)
+        
 
     def close_server(self):
         thread = threading.Thread(target=self.closeapiexe)
@@ -714,12 +731,16 @@ class SettingsDialog(QDialog):
 
     
     def apiret(self):
+        global isimg
         if self.apire:
             self.timerapi.stop()
             audio_player_thread = AudioPlayerThread('config/audio3.wav')
             audio_player_thread.start()
             self.apiretime.stop()
-            self.conut = 0 
+            self.conut = 0
+            appwindow.cheaktmer4.start(300)
+            isimg =True
+ 
 
     def apitest(self):
         if not self.apire:
@@ -900,8 +921,11 @@ class SettingsDialog(QDialog):
         self.fps.setText(config_data.get('FPS', {}).get('default', ''))
         self.caiyang.setText(config_data.get('CAI', {}).get('default', ''))
         self.talkkuan.setText(config_data.get('talkkuan', {}).get('default', '')) 
-        self.talksize.setText(config_data.get('talksize', {}).get('default', ''))                  
+        self.talksize.setText(config_data.get('talksize', {}).get('default', ''))
+        self.sleeptime.setText(config_data.get('sleeptime', {}).get('default', '')) 
+        self.lookbili.setText(config_data.get('lookbili', {}).get('default', ''))                             
         self.bubble_duration.setText(config_data.get('BubbleDuration', {}).get('default', ''))
+        self.mouseinterv.setText(config_data.get('mouseinter', {}).get('default', ''))        
         self.mouth_sync.setText(config_data.get('MouthSync', {}).get('default', ''))
         self.play_frequency.setText(config_data.get('PlayFrequency', {}).get('default', ''))
         self.pause.setText(config_data.get('Pause', {}).get('default', ''))
@@ -919,9 +943,12 @@ class SettingsDialog(QDialog):
             "FPS": self.fps.text(),
             "CAI": self.caiyang.text(),
             "talkkuan": self.talkkuan.text(),
-            "talksize": self.talksize.text(),                          
+            "talksize": self.talksize.text(),
+            "sleeptime": self.sleeptime.text(),
+            "lookbili": self.lookbili.text(),                           
             "MouseThrough": self.mouse_through.currentText(),
             "BubbleDuration": self.bubble_duration.text(),
+            "mouseinter": self.mouseinterv.text(),
             "MouthSync": self.mouth_sync.text(),
             "AutoPlayAction": self.auto_play_action.currentText(),
             "PlayFrequency": self.play_frequency.text(),
@@ -978,10 +1005,13 @@ class SettingsDialog(QDialog):
             "FPS": self.fps.text(),
             "CAI": self.caiyang.text(),
             "talkkuan": self.talkkuan.text(),
-            "talksize": self.talksize.text(),           
+            "talksize": self.talksize.text(), 
+            "sleeptime": self.sleeptime.text(),
+            "lookbili": self.lookbili.text(),                       
             "MouseThrough": self.mouse_through.currentText(),
             "Top": self.top.currentText(),
             "BubbleDuration": self.bubble_duration.text(),
+            "mouseinter": self.mouseinterv.text(),
             "MouthSync": self.mouth_sync.text(),
             "AutoPlayAction": self.auto_play_action.currentText(),
             "PlayFrequency": self.play_frequency.text(),
@@ -1045,7 +1075,9 @@ class SettingsDialog(QDialog):
         caiyang = int (conf["CAI"])       
         talkkuan = conf["talkkuan"]
         talksize = conf["talksize"]
-        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize)
+        lookbili = conf["lookbili"]
+        mouseinter = conf["mouseinter"] 
+        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize,lookbili,mouseinter)
         self.model_window.uptop(top,left)
 
     # def talkset(self):
@@ -1085,8 +1117,10 @@ class SettingsDialog(QDialog):
         caiyang = conf["CAI"]
         talkkuan = conf["talkkuan"]
         talksize = conf["talksize"]
+        lookbili = conf["lookbili"] 
+        mouseinter = conf["mouseinter"]         
         self.model_window.reload_model(size_str, width, height)
-        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize)
+        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize,lookbili,mouseinter)
         self.model_window.uptop(top,left)
         self.loadyulan()
         upmotions()
@@ -1104,7 +1138,7 @@ class SettingsDialog(QDialog):
         height = int(height)
         self.model_window.widnowsize(width,height)
 
-          
+      
     def update_config_from_file(self):
         # 这是线程的目标函数
         def thread_target(config_file_path, api_url):
@@ -1189,7 +1223,8 @@ class SettingsDialog(QDialog):
     #     painter.end()  # 结束绘制
 
 
-
+isimg = None
+openisimg = False
 class AppWindow(QWidget):
     updated = Signal()
     timeout = None
@@ -1221,6 +1256,14 @@ class AppWindow(QWidget):
         self.timer3.timeout.connect(self.update_model_gaze_to_cursor)
         # 启动定时器，例如每100毫秒更新一次
         self.timer3.start(100)
+        self.imagesent = imagesent()
+        self.imagesent.creatclient()
+        self.timer4 = QTimer(self)
+        self.timer4.timeout.connect(self.imgsent)
+        self.cheaktmer4 = QTimer(self)
+        self.cheaktmer4.timeout.connect(self.cheakimg)
+        self.oldisimg = isimg
+        # self.timer4.start(self.imagesent.timeout)          
 
 
 
@@ -1373,6 +1416,26 @@ class AppWindow(QWidget):
         self.setLayout( self.layout)
 
 
+    def cheakimg(self):
+        global isimg
+        if isimg!=self.oldisimg:
+            if not isimg:
+                self.timer4.stop()
+            else:
+                self.timer4.start(self.imagesent.timeout)    
+        self.oldisimg = isimg        
+    def imgsent(self):
+        global isimg
+        if openisimg:
+            isimg = False
+            def a():
+                appwindow.imagesent.screen_and_save()
+                appwindow.imagesent.upload_image()
+                appwindow.imagesent.talk()
+                appwindow.send_text_to_server(appwindow.imagesent.senttext, appwindow.callback)
+            th = threading.Thread(target=a)
+            th.start()            
+        # self.timer4.stop()    
     def saytalk(self):
         def star():
             output_folder = 'sensvoice/recorded_audios'
@@ -1478,6 +1541,7 @@ class AppWindow(QWidget):
         print("Input updated:", text)
 
     def send_input(self):
+
         # 这个槽函数会在按钮被点击时被调用
         # 发送 input_box 的当前输入内容
         current_input = self.input_box.text()
@@ -1570,7 +1634,7 @@ class AppWindow(QWidget):
   #   def on_timeout2(self):
 
     #     self.timer2.stop()
-             
+           
     def play(self, url):
         global audio
         if conf["TALK"]=='微软语音':
@@ -1630,7 +1694,15 @@ class AppWindow(QWidget):
             motion_thread.start()
             audio_player_thread = AudioPlayerThread1(audio_path)
             audio_player_thread.start()           
-            self.model_window.show_message_with_timeout(outtext, self.timeout)  
+            self.model_window.show_message_with_timeout(outtext, self.timeout)
+        def aa():
+            global isimg
+            # print(appwindow.timeout)
+            time0 = appwindow.timeout*0.001
+            time.sleep(time0)    
+            isimg = True
+        staraa = threading.Thread(target=aa)  
+        staraa.start()        
 
     # def audioplay(self):
     #     # 初始化pygame
@@ -1648,6 +1720,8 @@ class AppWindow(QWidget):
     #     self.play(url)
 
     def send_text_to_server(self, text, callback):
+        global isimg
+        isimg = False
         if  conf["TALK"]=='无语音请求':
             url = "http://localhost:8000/onlyglm4/" 
         elif conf["TALK"]=='微软语音':
@@ -1950,7 +2024,13 @@ class MainWindow(QMainWindow):
         self.sayapi.setCheckable(True)
         self.sayapi.setChecked(False)
         self.sayapi.triggered.connect(self.opensayapi)
-        self.menu.addAction(self.sayapi)        
+        self.menu.addAction(self.sayapi) 
+
+        self.sentimg = QAction(QIcon('ico/1.png'), "自动发送/关闭", self)
+        self.sentimg.setCheckable(True)
+        self.sentimg.setChecked(False)
+        self.sentimg.triggered.connect(self.onsentimg)
+        self.menu.addAction(self.sentimg)                
 
         exit_action = QAction(QIcon('ico/2.png'), "退出", self)
         exit_action.triggered.connect(self.exit_app)
@@ -2457,7 +2537,13 @@ class MainWindow(QMainWindow):
                     # 打印错误信息
                     print("error", e) 
             dd = threading.Thread(target=d)
-            dd.start()                                 
+            dd.start() 
+    def onsentimg(self):
+        global openisimg
+        if self.sentimg.isChecked(): 
+            openisimg = True
+        else:
+            openisimg = False       
     def toggle_window(self):
         # 根据 QAction 的选中状态来显示或隐藏窗口
         if self.toggle_action.isChecked():
@@ -2543,7 +2629,7 @@ def copy_moys_folder():
 
 
 def main():
-
+    global appwindow
 
     # if live2dver == 3:
     live2dv3.init()
@@ -2580,6 +2666,7 @@ def main():
 
     # 创建 AppWindow 实例并传递 Win 类的实例
     app_window = AppWindow(model_window, set)
+    appwindow = app_window
 
     main_window = MainWindow(app_window, app)
     set.duault()

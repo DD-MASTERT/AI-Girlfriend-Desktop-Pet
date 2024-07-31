@@ -23,6 +23,7 @@ import live2d.v2 as live2dv2
 import wave
 import struct
 from pydub import AudioSegment
+
 # import live2d.v2 as live2d
 
 global_motion_dict = {}
@@ -173,7 +174,9 @@ class Win(QOpenGLWidget):
     fps =int (30)
     caiyang =int (32)
     talkkuan = conf["talkkuan"]
-    talksize = conf["talksize"]   
+    talksize = conf["talksize"]
+    lookbili = conf["lookbili"] 
+    mouseinter = conf["mouseinter"]  
 
     if (top == '开启') and (left == '开启'):
         winqt = Qt.WindowType.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
@@ -271,7 +274,7 @@ class Win(QOpenGLWidget):
         self.show()
 
 
-    def updata(self,motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize):
+    def updata(self,motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize,lookbili,mouseinter):
         self.motiontime = motiontime
         self.motion_timer.stop()
         motiontime = int(self.motiontime)
@@ -283,6 +286,8 @@ class Win(QOpenGLWidget):
         self.caiyang = caiyang
         self.talkkuan =talkkuan
         self.talksize =talksize
+        self.lookbili = lookbili
+        self.mouseinter = mouseinter
 
 
     def initializeGL(self) -> None:
@@ -337,7 +342,9 @@ class Win(QOpenGLWidget):
     def update_model_drag(self, event: QMouseEvent):
         # Make the model look at the mouse cursor
         # self.model.Drag(int(event.pos().x()), int(event.pos().y()))
-        self.model.Drag(int(event.pos().x()*0.5), int(event.pos().y()*0.5))
+        a = self.lookbili
+        a = float(a) 
+        self.model.Drag(int(event.pos().x()*a), int(event.pos().y()*a))
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
@@ -379,7 +386,8 @@ class Win(QOpenGLWidget):
             # def a(): 
             #     self.newmotion('audio.wav')
             # motion_thread = threading.Thread(target=a)
-            # motion_thread.start()               
+            # motion_thread.start() 
+    
     def newmotion(self,audio_path):
 
         # def start_motion():
@@ -389,15 +397,15 @@ class Win(QOpenGLWidget):
 
             # 遍历数组
             for value in motion_values:
+                start_time = time.time()  
+                start_time = time.perf_counter_ns()                             
                 # 执行循环语句
                 self.model.StartMotion("mytalk", value, live2dv3.MotionPriority.FORCE.value)
-                start_time = time.time()
-                # 循环直到时间间隔超过32毫秒
                 while True:
-                    current_time = time.time()
-                    interval = (current_time - start_time) * 1000  # 将秒转换为毫秒
-                    if interval >= 32:
-                        # print(f"Interval reached or exceeded 32ms: {interval}ms")
+                    current_time = time.perf_counter_ns()
+                    interval = (current_time - start_time) // 1_000_000  # 转换为毫秒
+                    a = float(self.mouseinter)
+                    if interval >= a:
                         break
                     # 调用StartMotion方法
             self.model.StartMotion("mytalk", 0, live2dv3.MotionPriority.FORCE.value)      
@@ -744,7 +752,7 @@ def segment_audio_and_classify(file_path):
     audio = AudioSegment.from_file(file_path)
     
     # 定义片段长度，1000ms/30 即每段33.33ms
-    segment_length_ms = 1000 / 30
+    segment_length_ms = 1000 / 25
     
     # 拆分音频
     segments = [audio[i * int(segment_length_ms):(i + 1) * int(segment_length_ms)] for i in range(int(len(audio) / segment_length_ms) + 1)]
@@ -780,7 +788,7 @@ def segment_audio_and_classify(file_path):
             # 这里可以调整区间划分的方式，这里使用的是简单的线性映射
             classified_segments.append(min(int((l * 10) // 1) + 1, 10))
     
-    # 打印结果
+    # 返回结果
     return classified_segments
 
 
