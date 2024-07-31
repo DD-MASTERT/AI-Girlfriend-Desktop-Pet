@@ -1,5 +1,5 @@
 # 项目名称
-AI桌宠2.0（可语音聊天，摆脱了浏览器环境，直接用cookie白嫖服务器api，支持本地ollama模型聊天）（可用cookie的模型有glm4，kimi，deepseekv2）
+AI桌宠2.1（可语音聊天，摆脱了浏览器环境，直接用cookie白嫖服务器api，支持本地ollama模型聊天）（可用cookie的模型有glm4，kimi，deepseekv2）
 ## 项目简介
 基于live2d-py项目实现的live2d桌面AI女友软件，（可用模型glm4，kimi，deepseekv2）（这三个国产大模型可以稳定回答我的跨语种角色扮演），可语音联动GPT-sovits（要替换安装一下我改过的补丁包，没有大改动，不影响原项目的使用），除外，还有edge-tts语音模式（edge-tts项目）多语言的需要在ui填写自己的api，可联动CosyVoice语音。（CosyVoice部分对标v3ucn大佬的整合包，我微改了他的api.py，用补丁替换原项目即可）
 
@@ -8,7 +8,7 @@ AI桌宠2.0（可语音聊天，摆脱了浏览器环境，直接用cookie白嫖
 ## 安装教程
 ### 环境
 - 操作系统：Windows可运行，其他系统可能不行，核心包live2d-py是用python-win32编译的，可去原项目拉取源码自行编译其他版本，作者提供了编译好的32位
-- 编程语言： Python 3.10.11 32-bit （这个是必须的live2d-py只能用这个）和 python 3.12.4 64-bit（我单独封装api部分用的版本，其他版本安转依赖是否成功未知）
+- 编程语言： Python 3.10.11 32-bit （这个是必须的live2d-py只能用这个）和 你的默认解释器（建议3.10以上。我单独封装api部分用的默认解释器是3.10.6，其他版本安转依赖是否成功未知）（依赖是我 手写的，可能有遗漏，未经测试）
 
 ### 安装步骤
 1. 克隆项目到本地
@@ -20,17 +20,18 @@ git clone https://github.com/DD-MASTERT/AI-Girlfriend-Desktop-Pet.git
 cd AI-Girlfriend-Desktop-Pet
 "E:\Program Files\python.exe" -m pip install -r requirements.txt
  ```
-3. 单独安装依赖并封装api部分，如果不想封装为exe的话修改main.py里的openapiexe函数，位置为648行，封装api部分python版本依赖支持即可，不用强求Python 3.10.11 32-bit，64位速度更快
+3. 单独安装依赖并封装api部分，如果不想封装为exe的话修改main.py里的openapiexe函数，位置为648行，封装api部分python版本依赖支持即可，不用强求Python 3.10.11 32-bit，64位速度更快（我这里用的默认python解释器）（另，为减少机器速度，2.1版本建议用nuitka打包，命令如下。注意--include-data-file的路径替换为你的默认解释器实际路径）
  ```
 cd api
 pip install -r requirements.txt
-pyinstaller --onefile --icon=a.ico api2.py --add-data="C:\Users\ASUS\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\gradio_client\types.json;gradio_client" --add-data "C:\Users\ASUS\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\azure\cognitiveservices\speech\Microsoft.CognitiveServices.Speech.core.dll;."
-#注意封装exe时要添加两个文件site-packages\gradio_client\types.json和site-packages\azure\cognitiveservices\speech\Microsoft.CognitiveServices.Speech.core.dll
-#命令中的文件位置替换为你的实际位置
-#否则会运行报错
+nuitka --onefile --mingw64 --standalone --python-flag=-OO --windows-icon-from-ico=a.ico --show-scons --remove-output -j4 --enable-plugin=no-qt --include-data-file="C:\\Program Files\\Python310\\Lib\\site-packages\\gradio_client\\types.json=gradio_client\\types.json" api2.py
 
  ```
-4. 克隆安装语音识别SenseVoice的分支仓库安装依赖
+封装test.py（可选，不影响运行）
+ ```
+nuitka --onefile --mingw64 --standalone --python-flag=-OO --windows-icon-from-ico=a.ico --show-scons --remove-output -j4 --enable-plugin=no-qt test.py
+  ```
+4. 克隆安装语音识别SenseVoice的分支仓库安装依赖（注意，这里我没下载模型。所以第一次启动会自动下载模型到缓存目录）
  ```
  cd ../
  git clone https://github.com/DD-MASTERT/SenseVoice.git
@@ -54,4 +55,4 @@ pip install -r requirements.txt
 
 9. coysvoice的补丁替换掉整合包里的api.py即可。
 
-10. 其他使用说明可参考b站视频（暂略）
+10. 其他使用说明可参考b站视频：[2.0教程视频](https://www.bilibili.com/video/BV1Wxe8eTEfz/?vd_source=8d2d389c5bdd776c8292cc488f7c0506 "2.0教程视频")（暂略）
