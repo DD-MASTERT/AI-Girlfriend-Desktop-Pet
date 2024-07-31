@@ -1,0 +1,197 @@
+{
+    "11_start_0": {
+        "File": "motions/Live2D_remu26.mtn",
+        "Sound": "voice/26.wav",
+        "Text": ""
+    },
+    "11_idle_0": {
+        "File": "motions/Live2D_remu_idle.mtn",
+        "Sound": "",
+        "Text": ""
+    },
+    "11_tap_head_0": {
+        "File": "motions/Live2D_remu01.mtn",
+        "Sound": "voice/01.wav",
+        "Text": ""
+    },
+    "11_tap_head_1": {
+        "File": "motions/Live2D_remu02.mtn",
+        "Sound": "voice/02.wav",
+        "Text": ""
+    },
+    "11_tap_head_2": {
+        "File": "motions/Live2D_remu03.mtn",
+        "Sound": "voice/03.wav",
+        "Text": ""
+    },
+    "11_tap_head_3": {
+        "File": "motions/Live2D_remu04.mtn",
+        "Sound": "voice/04.wav",
+        "Text": ""
+    },
+    "11_tap_head_4": {
+        "File": "motions/Live2D_remu05.mtn",
+        "Sound": "voice/05.wav",
+        "Text": ""
+    },
+    "11_tap_head_5": {
+        "File": "motions/Live2D_remu21.mtn",
+        "Sound": "voice/21.wav",
+        "Text": ""
+    },
+    "11_tap_head_6": {
+        "File": "motions/Live2D_remu22.mtn",
+        "Sound": "voice/22.wav",
+        "Text": ""
+    },
+    "11_tap_head_7": {
+        "File": "motions/Live2D_remu23.mtn",
+        "Sound": "voice/23.wav",
+        "Text": ""
+    },
+    "11_tap_head_8": {
+        "File": "motions/Live2D_remu24.mtn",
+        "Sound": "voice/24.wav",
+        "Text": ""
+    },
+    "11_tap_head_9": {
+        "File": "motions/Live2D_remu25.mtn",
+        "Sound": "voice/25.wav",
+        "Text": ""
+    },
+    "11_tap_head_10": {
+        "File": "motions/my.mtn",
+        "Sound": "sounds/5.wav",
+        "Text": ""
+    },
+    "11_tap_body_0": {
+        "File": "motions/Live2D_remu06.mtn",
+        "Sound": "voice/06.wav",
+        "Text": ""
+    },
+    "11_tap_body_1": {
+        "File": "motions/Live2D_remu07.mtn",
+        "Sound": "voice/07.wav",
+        "Text": ""
+    },
+    "11_tap_body_2": {
+        "File": "motions/Live2D_remu08.mtn",
+        "Sound": "voice/08.wav",
+        "Text": ""
+    },
+    "11_tap_body_3": {
+        "File": "motions/Live2D_remu09.mtn",
+        "Sound": "voice/09.wav",
+        "Text": ""
+    },
+    "11_tap_body_4": {
+        "File": "motions/Live2D_remu10.mtn",
+        "Sound": "voice/10.wav",
+        "Text": ""
+    },
+    "11_tap_body_5": {
+        "File": "motions/Live2D_remu11.mtn",
+        "Sound": "voice/11.wav",
+        "Text": ""
+    },
+    "11_tap_body_6": {
+        "File": "motions/Live2D_remu12.mtn",
+        "Sound": "voice/12.wav",
+        "Text": ""
+    },
+    "11_tap_body_7": {
+        "File": "motions/Live2D_remu13.mtn",
+        "Sound": "voice/13.wav",
+        "Text": ""
+    },
+    "11_tap_body_8": {
+        "File": "motions/Live2D_remu14.mtn",
+        "Sound": "voice/14.wav",
+        "Text": ""
+    },
+    "11_tap_body_9": {
+        "File": "motions/Live2D_remu15.mtn",
+        "Sound": "voice/15.wav",
+        "Text": ""
+    },
+    "11_tap_body_10": {
+        "File": "motions/Live2D_remu16.mtn",
+        "Sound": "voice/16.wav",
+        "Text": ""
+    },
+    "11_tap_body_11": {
+        "File": "motions/Live2D_remu17.mtn",
+        "Sound": "voice/17.wav",
+        "Text": ""
+    },
+    "11_tap_body_12": {
+        "File": "motions/Live2D_remu18.mtn",
+        "Sound": "voice/18.wav",
+        "Text": ""
+    },
+    "11_tap_body_13": {
+        "File": "motions/Live2D_remu19.mtn",
+        "Sound": "voice/19.wav",
+        "Text": ""
+    },
+    "11_tap_body_14": {
+        "File": "motions/Live2D_remu20.mtn",
+        "Sound": "voice/20.wav",
+        "Text": ""
+    },
+    "11_random_0": {
+        "File": "motions/Live2D_remu01.mtn",
+        "Sound": "voice/01.wav",
+        "Text": ""
+    },
+    "11_random_1": {
+        "File": "motions/Live2D_remu02.mtn",
+        "Sound": "voice/02.wav",
+        "Text": ""
+    },
+    "11_random_2": {
+        "File": "motions/Live2D_remu03.mtn",
+        "Sound": "voice/03.wav",
+        "Text": ""
+    },
+    "11_random_3": {
+        "File": "motions/Live2D_remu04.mtn",
+        "Sound": "voice/04.wav",
+        "Text": ""
+    },
+    "11_random_4": {
+        "File": "motions/Live2D_remu05.mtn",
+        "Sound": "voice/05.wav",
+        "Text": ""
+    },
+    "11_random_5": {
+        "File": "motions/Live2D_remu21.mtn",
+        "Sound": "voice/21.wav",
+        "Text": ""
+    },
+    "11_random_6": {
+        "File": "motions/Live2D_remu22.mtn",
+        "Sound": "voice/22.wav",
+        "Text": ""
+    },
+    "11_random_7": {
+        "File": "motions/Live2D_remu23.mtn",
+        "Sound": "voice/23.wav",
+        "Text": ""
+    },
+    "11_random_8": {
+        "File": "motions/Live2D_remu24.mtn",
+        "Sound": "voice/24.wav",
+        "Text": ""
+    },
+    "11_random_9": {
+        "File": "motions/Live2D_remu25.mtn",
+        "Sound": "voice/25.wav",
+        "Text": ""
+    },
+    "11_new_msg_0": {
+        "File": "motions/Live2D_remu24.mtn",
+        "Sound": "voice/24.wav",
+        "Text": ""
+    }
+}
