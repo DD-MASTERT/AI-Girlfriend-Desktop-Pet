@@ -3,10 +3,10 @@ import json
 
 class glm4api:
     def __init__(self):
-        self.chatglm_refresh_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjMjIzYmNiYTM4YTg0OThmYWJjMDNiZGRjYTQxYjE3ZiIsImV4cCI6MTczNjg1OTg1NiwibmJmIjoxNzIxMzA3ODU2LCJpYXQiOjE3MjEzMDc4NTYsImp0aSI6IjIyNGM5MzdkMGQxZTRlODlhZmQ0Zjc5NDE1ZDlkMjFlIiwidWlkIjoiNjYxODQyZjgxNmMzMjMwOTcwZjQ5ZjQwIiwidHlwZSI6InJlZnJlc2gifQ.JDRzpsAebCnZyF_rTkex8Q5hSl5G6O-0bGhXlbqieCI"
+        self.chatglm_refresh_token = ""
         self.token = None
         self.id = None
-        self.assistant_id = "65940acff94777010aa6b796"
+        self.assistant_id = ""
     def talknext(self,text):
         # 请求的 URL
         url = "https://chatglm.cn/chatglm/backend-api/assistant/stream"
@@ -62,9 +62,11 @@ class glm4api:
                     for content in part.get('content', []):
                         if content.get('type') == 'text':
                             print(content.get('text'))
+                            return content.get('text')
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")
-        return content.get('text')
+                return(f"Error decoding JSON: {e}")
+
     def talknew(self,text='你好'):
         # 请求的 URL
         url = "https://chatglm.cn/chatglm/backend-api/assistant/stream"
@@ -123,6 +125,7 @@ class glm4api:
                     for content in part.get('content', []):
                         if content.get('type') == 'text':
                             print(content.get('text'))  # 打印文本内容
+                            return content.get('text')
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")
         # return content.get('text')
