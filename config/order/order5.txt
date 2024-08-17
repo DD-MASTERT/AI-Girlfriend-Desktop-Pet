@@ -1,0 +1,4 @@
+打开，"C:\Users\ASUS\Desktop\File Explorer.lnk"
+等待，1
+组合键，%d
+文本，参数1

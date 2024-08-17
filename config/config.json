@@ -3,6 +3,7 @@
         "options": [
             "11",
             "ATRI",
+            "destroy",
             "Haru",
             "Hiyori",
             "kanzaki",
@@ -14,10 +15,10 @@
             "Rice",
             "Wanko"
         ],
-        "default": "11"
+        "default": "Haru"
     },
     "CharacterSize": {
-        "default": "500 650",
+        "default": "400 600",
         "options": [
             "300 500"
         ]
@@ -35,7 +36,7 @@
         ]
     },
     "talkkuan": {
-        "default": "200",
+        "default": "300",
         "options": [
             "32"
         ]
@@ -46,8 +47,26 @@
             "32"
         ]
     },
+    "movex": {
+        "default": "0.5",
+        "options": [
+            "32"
+        ]
+    },
+    "movey": {
+        "default": "-0.5",
+        "options": [
+            "32"
+        ]
+    },
+    "modelsize": {
+        "default": "0.5",
+        "options": [
+            "32"
+        ]
+    },
     "sleeptime": {
-        "default": "0.67",
+        "default": "0.68",
         "options": [
             "32"
         ]
@@ -92,14 +111,10 @@
     },
     "AutoPlayAction": {
         "options": [
-            "start",
-            "idle",
-            "tap_head",
-            "tap_body",
-            "random",
-            "new_msg"
+            "Idle",
+            "TapBody"
         ],
-        "default": "start"
+        "default": "Idle"
     },
     "PlayFrequency": {
         "default": "1000",
@@ -110,7 +125,6 @@
     "GSVModel": {
         "options": [
             "leimu",
-            "亚托莉",
             "纳西妲"
         ],
         "default": "纳西妲"
@@ -118,10 +132,11 @@
     "Presets": {
         "options": [
             "亚托莉",
+            "指令预设",
             "雷姆",
             "雷姆2"
         ],
-        "default": "雷姆"
+        "default": "指令预设"
     },
     "InferLanguage": {
         "options": [
