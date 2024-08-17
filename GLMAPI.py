@@ -1,92 +1,33 @@
 import requests
-from zhipuai import ZhipuAI
 from pathlib import Path
 import json
 import pyautogui
 from PIL import Image
 class imagesent:
     def __init__(self) -> None:
-        self.api_key = None
-        self.client = None
         self.text = None
-        self.url = None
-        self.token = None
-        self.file = 'config/123.jpg'
         self.senttext = None
         self.timeout = None
     def creatclient(self):
         with open('config/img.json', 'r', encoding='utf-8') as f:
             config_data = json.load(f)
-        self.api_key = config_data['api_key']
         self.text = config_data['text'] 
-        self.urltu = config_data['url']
-        self.token = config_data['token']
-        self.timeout = config_data['timeout']       
-        self.client = ZhipuAI(api_key = self.api_key) # 填写您自己的APIKey            
+        self.timeout = config_data['timeout']                
     def talk(self):
-        self.client = ZhipuAI(api_key = self.api_key) # 填写您自己的APIKey
-        response = self.client.chat.completions.create(
-            model="glm-4v",  # 填写需要调用的模型名称
-            messages=[
-            {
-                "role": "user",
-                "content": [
-                {
-                    "type": "text",
-                    "text": self.text
-                },
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url" : self.url
-                    }
-                }
-                ]
-            }
-            ]
-        )
-        self.senttext = f"({response.choices[0].message.content})"
-        # print(response.choices[0].message.content)
+        url = 'http://localhost:2001/run/'
+        data = {'message': self.text}
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(url, json=data, headers=headers)
+        
+        if response.status_code == 200:
+            self.senttext = response.text
+            out = f"自动发送的图片识别结果：{response.text}"
+            print(out)
+        else:
+            print('图片识别请求失败', response.status_code)
 
     def upload_image(self, permission=1, strategy_id=None, album_id=None, expired_at=None):
-        """
-        上传本地图片并返回图片的URL链接
-
-        :param api_url: 接口URL，例如：https://picui.cn/api/v1
-        :param token: 授权Token，例如：Bearer 1|1bJbwlqBfnggmOMEZqXT5XusaIwqiZjCDs7r1Ob5
-        :param file_path: 本地图片文件路径
-        :param permission: 权限，1=公开，0=私有
-        :param strategy_id: 储存策略ID
-        :param album_id: 相册ID
-        :param expired_at: 图片过期时间(yyyy-MM-dd HH:mm:ss)
-        :return: 图片的URL链接
-        """
-        url = self.urltu
-        headers = {
-            "Authorization": f"Bearer {self.token}",
-            "Accept": "application/json"
-        }
-        files = {
-            "file": open(self.file, "rb")
-        }
-        data = {
-            "permission": permission,
-            "strategy_id": strategy_id,
-            "album_id": album_id,
-            "expired_at": expired_at
-        }
-
-        response = requests.post(url, headers=headers, files=files, data=data)
-
-        if response.status_code == 200:
-            response_data = response.json()
-            if response_data["status"]:
-                self.url = response_data["data"]["links"]["url"]
-                # return response_data["data"]["links"]["url"]
-            else:
-                raise Exception(f"上传失败: {response_data['message']}")
-        else:
-            raise Exception(f"请求失败，状态码: {response.status_code}, 响应: {response.text}")
+        pass
     
     def screen_and_save(self,filename='config/123.jpg'):
         # 截取屏幕

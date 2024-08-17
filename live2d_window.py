@@ -1,4 +1,4 @@
-from PySide2.QtCore import QTimer, Qt, QEvent, QPoint, QTimerEvent, Signal
+from PySide2.QtCore import QTimer, Qt, QEvent, QPoint, QTimerEvent, Signal,QThread
 from PySide2.QtGui import QMouseEvent, QCursor,QIcon
 # from PySide2.QtOpenGLWidgets import QOpenGLWidget
 # from PySide2.QtOpenGL import QOpenGLWidget
@@ -176,7 +176,10 @@ class Win(QOpenGLWidget):
     talkkuan = conf["talkkuan"]
     talksize = conf["talksize"]
     lookbili = conf["lookbili"] 
-    mouseinter = conf["mouseinter"]  
+    mouseinter = conf["mouseinter"]
+    movex = conf["movex"] 
+    movey = conf["movey"] 
+    modelsize = conf["modelsize"] 
 
     if (top == '开启') and (left == '开启'):
         winqt = Qt.WindowType.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
@@ -235,12 +238,12 @@ class Win(QOpenGLWidget):
         self.layout = QHBoxLayout()
         # 创建一个 QLabel 实例
         self.message_label = QLabel("")
-        self.message_label2 = QLabel("")
-        self.message_label3 = QLabel("")
 
-        self.layout.addWidget(self.message_label2)
+
+
+        # self.layout.addWidget(self.message_label2)
         self.layout.addWidget(self.message_label)
-        self.layout.addWidget(self.message_label3)
+        # self.layout.addWidget(self.message_label3)
         self.message_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 居中显示文本
 
         # 创建一个 QTimer 实例
@@ -254,7 +257,8 @@ class Win(QOpenGLWidget):
 
         self.motion_timer.start(motiontime*1000)
 
-
+        self.timessage = QTimer(self)
+        self.total = 0
 
         # 设置窗口的布局
         self.setLayout(self.layout)
@@ -274,7 +278,7 @@ class Win(QOpenGLWidget):
         self.show()
 
 
-    def updata(self,motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize,lookbili,mouseinter):
+    def updata(self,motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize,lookbili,mouseinter,movex,movey,modelsize):
         self.motiontime = motiontime
         self.motion_timer.stop()
         motiontime = int(self.motiontime)
@@ -288,8 +292,16 @@ class Win(QOpenGLWidget):
         self.talksize =talksize
         self.lookbili = lookbili
         self.mouseinter = mouseinter
-
-
+        self.movex = movex
+        self.movey = movey
+        self.modelsize = modelsize
+        self.changemodel()
+    def changemodel(self):
+        x = float(self.movex)
+        y = float(self.movey)
+        s = float(self.modelsize)
+        self.model.SetOffset(x,y)
+        self.model.SetScale(s)
     def initializeGL(self) -> None:
         glEnable(GL_MULTISAMPLE)
         self.makeCurrent()
@@ -305,6 +317,7 @@ class Win(QOpenGLWidget):
 
         self.model.SetLipSyncN(self.mou)
         self.startTimer(int(1000 / self.fps))
+        self.changemodel()
     
 
     def resizeGL(self, w: int, h: int) -> None:
@@ -397,7 +410,7 @@ class Win(QOpenGLWidget):
 
             # 遍历数组
             for value in motion_values:
-                start_time = time.time()  
+
                 start_time = time.perf_counter_ns()                             
                 # 执行循环语句
                 self.model.StartMotion("mytalk", value, live2dv3.MotionPriority.FORCE.value)
@@ -427,22 +440,47 @@ class Win(QOpenGLWidget):
     #         self.model.StartMotion("TapBody", 0, live2dv3.MotionPriority.FORCE.value)
     #     else:
     #         self.model.StartMotion("TapBody", 0, live2dv2.MotionPriority.FORCE.value)
-    def wrap_text(self, text, wrap_length=20):
-        # 删除文本中所有的换行符和空格
-        text = text.replace("\n", "").replace(" ", "")
-        
-        # 按wrap_length长度分割文本
-        wrapped_parts = [text[i:i + wrap_length] for i in range(0, len(text), wrap_length)]
-        
-        # 使用换行符将分割后的文本部分连接起来
-        wrapped_text = "\n".join(wrapped_parts)
+    def starmessage(self, message, max_chars_at_once, total_chars):
+        if self.total < total_chars:
+            self.message_label.clear()
+            i = self.total
+            start = max(0, i - max_chars_at_once + 1)  # 调整起始位置
+            current_chars = message[start:i + 1]  # 调整切片范围
+            self.message_label.setText(current_chars)
+            self.total += 1  # 每次递增1
+        else:
+            self.timessage.stop()
+            self.total = 0  # 重置计数器为0
+            self.timessage.timeout.disconnect()
+                   
 
-        return wrapped_text
+    def cycle_print(self,message, total_time):
+        self.message_label.setText("")
+        message = message.replace("\n", "")
+        total_chars = len(message)
+        interval = total_time / total_chars if total_chars > 0 else 0
+        max_chars_at_once = self.calculate_chinese_characters_per_line()  # 最多同时显示的字符数
+        self.total = 0 # 重置计数器           
+        self.timessage.timeout.connect(lambda: self.starmessage(message, max_chars_at_once, total_chars))
+        self.timessage.start(interval)
+    
+        # for i in range(1, total_chars + 1):
+
+
 
     def show_message_with_timeout(self, message, timeout):  # timeout 默认为10秒
-        timeout = timeout+self.lasttime
+        if timeout==0:
+            to = len(message)
+            timeout = to*180        
+        alltimeout = timeout+self.lasttime
+
         # 设置尺寸策略为固定
         # message = self.wrap_text(message)
+        self.message_label.setText("")
+        self.message_timer.stop()
+        # self.layout.removeWidget(self.message_label2)       
+        self.layout.removeWidget(self.message_label)
+        # self.layout.removeWidget(self.message_label3)            
         policy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.message_label.setSizePolicy(policy)
 
@@ -462,27 +500,34 @@ class Win(QOpenGLWidget):
   
         
         self.message_label.setStyleSheet(new_style)
- 
-
-
-        self.message_label.setText(message)
         self.message_label.setAlignment(Qt.AlignCenter)  # 设置 QLabel 的对齐方式
-        # self.message_label.adjustSize()
-
-        # self.layout.addStretch(1)
-        # self.message_label.addStretch(1)
-        # 将 QLabel 添加到布局中
-        self.layout.addWidget(self.message_label2)
         self.message_label.setWordWrap(True)
 
-   
+
+        # self.layout.addWidget(self.message_label2)
         self.layout.addWidget(self.message_label)
-        self.layout.addWidget(self.message_label3) 
+        # kuan = int(self.talkkuan)
+        self.message_label.move(500, 200)  # x: 1, y: 1        
+        # self.layout.addWidget(self.message_label3) 
         # self.layout.addStretch(1)
+        self.message_timer.start(alltimeout)  # 启动定时器
 
-        self.message_label.show()  # 确保标签是可见的
-        self.message_timer.start(timeout)  # 启动定时器
+        self.message_label.show()
+        self.cycle_print(message,timeout)
+        self.message_timer.start(alltimeout)  # 启动定时器  
 
+        # self.message_label.setText(message)
+    def calculate_chinese_characters_per_line(self, padding=8):
+        padding = int(padding)
+        self.talkkuan=int(self.talkkuan)
+        self.talksize=int(self.talksize)
+        # 计算实际可用于显示文本的宽度
+        effective_width = self.talkkuan - 2 * padding
+        
+        # 计算每行可以显示的中文字符数量
+        characters_per_line = effective_width // self.talksize
+        
+        return characters_per_line
     def hide_message(self):
         """
         隐藏消息标签。
@@ -619,6 +664,7 @@ class Win(QOpenGLWidget):
         self.model.SetLipSyncN(self.mou)
         self.model.Resize(self.width,self.height)
         self.startTimer(int(1000 / self.fps))
+        self.changemodel()
         self.resize(self.width, self.height)
 
             # 重新连接信号和槽

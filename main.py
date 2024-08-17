@@ -8,6 +8,7 @@
 #         ctypes.windll.user32.ShowWindow(console_window, 0)
 
 import io
+import re
 import math
 import os
 import queue
@@ -19,6 +20,7 @@ import string
 import json
 import signal
 import webbrowser
+import keyboard
 
 
 
@@ -45,6 +47,7 @@ import sounddevice as sd
 import numpy as np
 import soundfile as sf
 from GLMAPI import  imagesent
+from auto import auto
 
 
 
@@ -284,13 +287,23 @@ class SettingsDialog(QDialog):
         self.mouse_through.addItems(['开启', '关闭'])
         top_layout14.addWidget(QLabel('鼠标穿透'))
         top_layout14.addWidget(self.mouse_through)
+
+        self.top = QComboBox()
+        self.top.addItems(['开启', '关闭'])
+        top_layout14.addWidget(QLabel('窗口置顶'))
+        top_layout14.addWidget(self.top)
         top_layout.addLayout(top_layout14)
 
         top_layout15 = QHBoxLayout()
-        self.top = QComboBox()
-        self.top.addItems(['开启', '关闭'])
-        top_layout15.addWidget(QLabel('窗口置顶'))
-        top_layout15.addWidget(self.top)
+        top_layout15.addWidget(QLabel('X'))
+        self.movex = QLineEdit()
+        top_layout15.addWidget(self.movex)        
+        top_layout15.addWidget(QLabel('Y'))
+        self.movey = QLineEdit()
+        top_layout15.addWidget(self.movey)
+        top_layout15.addWidget(QLabel('S'))
+        self.modelsize = QLineEdit()
+        top_layout15.addWidget(self.modelsize)          
         top_layout.addLayout(top_layout15)
 
         top_layout16 = QHBoxLayout()
@@ -502,7 +515,7 @@ class SettingsDialog(QDialog):
                 border-radius: 12.5px;
                 padding: 5px;
                 color: black;
-                max-width: 100px;
+                max-width: 95px;
             }
             QLineEdit:hover {
                 background-color: rgba(0, 0, 0, 1);
@@ -759,7 +772,8 @@ class SettingsDialog(QDialog):
         # 请求数据
         data = {
             'text': text_input,
-            'weiruan': 10
+            'weiruan': 10,
+            'order': appwindow.isorder
         }
         
         try:
@@ -923,6 +937,9 @@ class SettingsDialog(QDialog):
         self.talkkuan.setText(config_data.get('talkkuan', {}).get('default', '')) 
         self.talksize.setText(config_data.get('talksize', {}).get('default', ''))
         self.sleeptime.setText(config_data.get('sleeptime', {}).get('default', '')) 
+        self.movex.setText(config_data.get('movex', {}).get('default', ''))
+        self.movey.setText(config_data.get('movey', {}).get('default', ''))
+        self.modelsize.setText(config_data.get('modelsize', {}).get('default', ''))                               
         self.lookbili.setText(config_data.get('lookbili', {}).get('default', ''))                             
         self.bubble_duration.setText(config_data.get('BubbleDuration', {}).get('default', ''))
         self.mouseinterv.setText(config_data.get('mouseinter', {}).get('default', ''))        
@@ -945,6 +962,9 @@ class SettingsDialog(QDialog):
             "talkkuan": self.talkkuan.text(),
             "talksize": self.talksize.text(),
             "sleeptime": self.sleeptime.text(),
+            "movex": self.movex.text(),  
+            "movey": self.movey.text(),
+            "modelsize": self.modelsize.text(),          
             "lookbili": self.lookbili.text(),                           
             "MouseThrough": self.mouse_through.currentText(),
             "BubbleDuration": self.bubble_duration.text(),
@@ -1007,6 +1027,9 @@ class SettingsDialog(QDialog):
             "talkkuan": self.talkkuan.text(),
             "talksize": self.talksize.text(), 
             "sleeptime": self.sleeptime.text(),
+            "movex": self.movex.text(),  
+            "movey": self.movey.text(),
+            "modelsize": self.modelsize.text(),                 
             "lookbili": self.lookbili.text(),                       
             "MouseThrough": self.mouse_through.currentText(),
             "Top": self.top.currentText(),
@@ -1077,7 +1100,10 @@ class SettingsDialog(QDialog):
         talksize = conf["talksize"]
         lookbili = conf["lookbili"]
         mouseinter = conf["mouseinter"] 
-        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize,lookbili,mouseinter)
+        movex = conf["movex"] 
+        movey = conf["movey"] 
+        modelsize = conf["modelsize"] 
+        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize,lookbili,mouseinter,movex,movey,modelsize)
         self.model_window.uptop(top,left)
 
     # def talkset(self):
@@ -1118,9 +1144,12 @@ class SettingsDialog(QDialog):
         talkkuan = conf["talkkuan"]
         talksize = conf["talksize"]
         lookbili = conf["lookbili"] 
-        mouseinter = conf["mouseinter"]         
+        mouseinter = conf["mouseinter"]
+        movex = conf["movex"] 
+        movey = conf["movey"] 
+        modelsize = conf["modelsize"]                  
         self.model_window.reload_model(size_str, width, height)
-        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize,lookbili,mouseinter)
+        self.model_window.updata(motiontime,mou,motionname,lasttime,fps,caiyang,talkkuan,talksize,lookbili,mouseinter,movex,movey,modelsize)
         self.model_window.uptop(top,left)
         self.loadyulan()
         upmotions()
@@ -1222,7 +1251,7 @@ class SettingsDialog(QDialog):
         
     #     painter.end()  # 结束绘制
 
-
+au = auto('config/order') 
 isimg = None
 openisimg = False
 class AppWindow(QWidget):
@@ -1263,7 +1292,9 @@ class AppWindow(QWidget):
         self.cheaktmer4 = QTimer(self)
         self.cheaktmer4.timeout.connect(self.cheakimg)
         self.oldisimg = isimg
-        # self.timer4.start(self.imagesent.timeout)          
+        # self.timer4.start(self.imagesent.timeout)
+        self.isorder = False
+         
 
 
 
@@ -1348,8 +1379,12 @@ class AppWindow(QWidget):
         # 连接按钮的 clicked 信号到发送函数
         self.button.clicked.connect(self.send_input)
 
-        self.buttontalkkey = QShortcut(QKeySequence("Up"), self)
-        self.buttontalkkey.activated.connect(self.buttontalk.click)  
+        # self.buttontalkkey = QShortcut(QKeySequence("Up"), self)
+        # self.buttontalkkey.activated.connect(self.buttontalk.click)
+        # 启动一个线程来监听全局快捷键
+        self.shortcut_thread = threading.Thread(target=self.setup_global_shortcut)
+        self.shortcut_thread.daemon = True
+        self.shortcut_thread.start()          
 
         # 创建一个快捷键，绑定回车键到按钮的点击事件
         self.return_shortcut = QShortcut(QKeySequence("Return"), self)
@@ -1415,6 +1450,55 @@ class AppWindow(QWidget):
         # 设置窗口的布局
         self.setLayout( self.layout)
 
+    def setup_global_shortcut(self):
+        keyboard.add_hotkey('up', self.on_global_shortcut)
+        keyboard.wait()
+
+    def on_global_shortcut(self):
+        # 在主线程中调用按钮的点击事件
+        self.buttontalk.click()
+        
+    def guolvorder(self,input_string):
+        def a():
+            global au  
+            time.sleep(2.5)
+            try:
+                # 定义正则表达式模式，匹配 [-需要提取的内容-] 格式
+                pattern = r'\[-.*?-\]'                
+                # 使用 re.findall 找到所有匹配的项
+                matches = re.findall(pattern, input_string, re.DOTALL)    
+                # 打印所有找到的匹配项
+                for match in matches:
+                    print(match)
+                    au.order(match)
+            except Exception as e:
+                print(e)
+        if self.isorder:
+            th = threading.Thread(target=a)
+            th.start() 
+            pattern0 = re.compile(r'\*\*\{(.*?)\}\*\*')
+            # 存储匹配到的 **{...}** 内容和它们的位置
+            contents = []
+            # 存储替换后的特殊标记
+            placeholders = []
+            # 替换 **{...}** 为特殊标记，并存储内容
+            def replace_with_placeholder(match):
+                content = match.group(1)  # 获取匹配到的括号内的内容
+                placeholder = f"__{len(contents)}__"  # 创建一个特殊的标记
+                contents.append(content)  # 存储内容
+                placeholders.append(placeholder)  # 存储特殊标记
+                return placeholder
+            # 使用正则表达式替换函数
+            name_with_placeholders = pattern0.sub(replace_with_placeholder, input_string)          
+            # 定义正则表达式模式，匹配 [-需要提取的内容-] 格式
+            pattern = r'\[-[^]]*?-\]'              
+            # 使用 re.sub 删除所有匹配的项
+            modified_string = re.sub(pattern, '', name_with_placeholders, re.DOTALL)          
+            # 将删除后的内容赋值给一个新的变量
+            return modified_string
+        else:
+            return input_string
+                                
 
     def cheakimg(self):
         global isimg
@@ -1432,7 +1516,8 @@ class AppWindow(QWidget):
                 appwindow.imagesent.screen_and_save()
                 appwindow.imagesent.upload_image()
                 appwindow.imagesent.talk()
-                appwindow.send_text_to_server(appwindow.imagesent.senttext, appwindow.callback)
+                out = f"({appwindow.imagesent.senttext})"
+                appwindow.send_text_to_server(out, appwindow.callback)
             th = threading.Thread(target=a)
             th.start()            
         # self.timer4.stop()    
@@ -1546,6 +1631,7 @@ class AppWindow(QWidget):
         # 发送 input_box 的当前输入内容
         current_input = self.input_box.text()
         print("Sending input:", current_input)
+        current_input = self.guolvorder(current_input)
         self.send_text_to_server(current_input, self.callback)
         self.input_box.clear()  # 清空输入框内容
 
@@ -1613,6 +1699,8 @@ class AppWindow(QWidget):
                 # 直接从本地文件路径加载音频文件
                 self.audio = AudioSegment.from_file(aupath)
                 audtime = len(self.audio)   # pydub 使用毫秒，转换为秒
+                if conf['Reply']=='原文加翻译':
+                    audtime = audtime*2
                 # 将结果放入队列
                 self.audtime_queue.put(audtime)
                 self.audtime_event.set()  # 操作完成，设置事件
@@ -1636,38 +1724,13 @@ class AppWindow(QWidget):
     #     self.timer2.stop()
            
     def play(self, url):
-        global audio
+        global audio,outtext
         if conf["TALK"]=='微软语音':
             edgeaudio = r'api/edge/audio.mp3'
             # audio_player_thread = AudioPlayerThread(edgeaudio)
             # audio_player_thread.start()
             audio = 'api/edge/audio1.mp3'
-            self.copy_audio_file(edgeaudio, audio)
-            self.autime(audio)
-            self.audtime_event.wait()
-            audtime = self.audtime_queue.get()
-            self.timeout = audtime 
-            audio_path = audio1
-            if outtext == '开始新对话了':
-                audio_path = 'api/audio.wav'            
-            def a():
-                self.model_window.newmotion(audio_path)
-            motion_thread = HiddenWindowThread(target=a)
-            motion_thread.start()
-
-            audio_player_thread = AudioPlayerThread1(audio_path)
-            audio_player_thread.start()            
-            self.model_window.show_message_with_timeout(outtext, self.timeout)           
-            # self.start_mouth_motions(audtime)
-            # self.start_mouth_motions0()
-        elif conf["TALK"]=='CosyVoice语音':
-            cosyaudio = r'api/cosy/audio.wav'
-            audio = 'api/cosy/audio1.wav'
-            self.copy_audio_file(cosyaudio, audio)
-            self.autime(audio)
-            self.audtime_event.wait()
-            audtime = self.audtime_queue.get()
-            self.timeout = audtime 
+            self.copy_audio_file(edgeaudio, audio) 
             audio_path = audio1
             if outtext == '开始新对话了':
                 audio_path = 'api/audio.wav'            
@@ -1677,14 +1740,20 @@ class AppWindow(QWidget):
             motion_thread.start()
             audio_player_thread = AudioPlayerThread1(audio_path)
             audio_player_thread.start() 
-            self.model_window.show_message_with_timeout(outtext, self.timeout)                 
-        else:
-            #self.download_audio(url, audio)
-            self.copy_audio_file(audio0, audio)
+
             self.autime(audio)
             self.audtime_event.wait()
             audtime = self.audtime_queue.get()
-            self.timeout = audtime 
+            self.timeout = audtime            
+            outtext = self.guolvorder(outtext)           
+            self.model_window.show_message_with_timeout(outtext, self.timeout)           
+            # self.start_mouth_motions(audtime)
+            # self.start_mouth_motions0()
+        elif conf["TALK"]=='CosyVoice语音':
+            cosyaudio = r'api/cosy/audio.wav'
+            audio = 'api/cosy/audio1.wav'
+            self.copy_audio_file(cosyaudio, audio)
+
             audio_path = audio1
             if outtext == '开始新对话了':
                 audio_path = 'api/audio.wav'            
@@ -1693,7 +1762,31 @@ class AppWindow(QWidget):
             motion_thread = HiddenWindowThread(target=a)
             motion_thread.start()
             audio_player_thread = AudioPlayerThread1(audio_path)
-            audio_player_thread.start()           
+            audio_player_thread.start()
+            self.autime(audio)
+            self.audtime_event.wait()
+            audtime = self.audtime_queue.get()
+            self.timeout = audtime             
+            outtext = self.guolvorder(outtext)   
+            self.model_window.show_message_with_timeout(outtext, self.timeout)                 
+        else:
+            #self.download_audio(url, audio)
+            self.copy_audio_file(audio0, audio)
+
+            audio_path = audio1
+            if outtext == '开始新对话了':
+                audio_path = 'api/audio.wav'            
+            def a():
+                self.model_window.newmotion(audio_path)
+            motion_thread = HiddenWindowThread(target=a)
+            motion_thread.start()
+            audio_player_thread = AudioPlayerThread1(audio_path)
+            audio_player_thread.start() 
+            self.autime(audio)
+            self.audtime_event.wait()
+            audtime = self.audtime_queue.get()
+            self.timeout = audtime             
+            outtext = self.guolvorder(outtext)            
             self.model_window.show_message_with_timeout(outtext, self.timeout)
         def aa():
             global isimg
@@ -1735,22 +1828,26 @@ class AppWindow(QWidget):
         }
         if conf["TALK"]=='GPT-SOVITS语音请求':
             data = {
-                'text': text
+                'text': text,
+                'order': self.isorder
             }
         elif conf["TALK"]=='无语音请求':
             data = {
                 'text': text,
-                'weiruan': 2
+                'weiruan': 2,
+                'order': self.isorder
             }
         elif conf["TALK"]=='CosyVoice语音':
             data = {
                 'text': text,
-                'weiruan': 3
+                'weiruan': 3,
+                'order': self.isorder
             }
         else:
              data = {
                 'text': text,
-                'weiruan': 1
+                'weiruan': 1,
+                'order': self.isorder
             }
         result_queue = queue.Queue() 
 
@@ -1774,16 +1871,20 @@ class AppWindow(QWidget):
         global outtext
         if result is not None:
             outtext = result
+            # outtext = self.guolvorder(outtext)
             self.updated.emit()  # 发射信号
         else:
             print("No response received")
 
     def onlytalkshowmeeeage(self):
+        global outtext
         if outtext == '开始新对话了':
             sound = 'api/audio.wav'
             audio_player_thread = AudioPlayerThread(sound)
             audio_player_thread.start()
+        outtext = self.guolvorder(outtext)   
         self.model_window.show_message_with_timeout(outtext, 0)
+        
 
     def update_ui_slot(self):
  
@@ -2003,36 +2104,42 @@ class MainWindow(QMainWindow):
         self.tray_icon.setIcon(tray_icon)
         self.menu = QMenu(self)  # 设置 MainWindow 为菜单的父窗口
         # 为菜单项添加图标和样式
-        self.top_action = QAction(QIcon('ico/4.png'), "置顶/关闭", self)
+        self.top_action = QAction(QIcon('ico/4.png'), "聊天框置顶/关闭", self)
         self.top_action.setCheckable(True)
         self.top_action.setChecked(False)
         self.top_action.triggered.connect(self.widtop)
         self.menu.addAction(self.top_action)
 
 
-        move_action = QAction(QIcon('ico/3.png'), "配置", self)
+        move_action = QAction(QIcon('ico/3.png'), "打开配置菜单", self)
         move_action.triggered.connect(self.movewin)
         self.menu.addAction(move_action)
 
-        self.toggle_action = QAction(QIcon('ico/1.png'), "显示/隐藏", self)
+        self.toggle_action = QAction(QIcon('ico/3.png'), "聊天框显示/隐藏", self)
         self.toggle_action.setCheckable(True)
         self.toggle_action.setChecked(True)
         self.toggle_action.triggered.connect(self.toggle_window)
         self.menu.addAction(self.toggle_action)
 
-        self.sayapi = QAction(QIcon('ico/1.png'), "语音/关闭", self)
+        self.sayapi = QAction(QIcon('ico/1.png'), "启动语音识别模型/关闭", self)
         self.sayapi.setCheckable(True)
         self.sayapi.setChecked(False)
         self.sayapi.triggered.connect(self.opensayapi)
         self.menu.addAction(self.sayapi) 
 
-        self.sentimg = QAction(QIcon('ico/1.png'), "自动发送/关闭", self)
+        self.sentimg = QAction(QIcon('ico/1.png'), "屏幕自动发送/关闭", self)
         self.sentimg.setCheckable(True)
         self.sentimg.setChecked(False)
         self.sentimg.triggered.connect(self.onsentimg)
         self.menu.addAction(self.sentimg)                
 
-        exit_action = QAction(QIcon('ico/2.png'), "退出", self)
+        self.setorder = QAction(QIcon('ico/3.png'), "启用脚本/关闭", self)
+        self.setorder.setCheckable(True)
+        self.setorder.setChecked(False)
+        self.setorder.triggered.connect(self.onsetorder)
+        self.menu.addAction(self.setorder)
+
+        exit_action = QAction(QIcon('ico/2.png'), "退出程序", self)
         exit_action.triggered.connect(self.exit_app)
         self.menu.addAction(exit_action)
 
@@ -2049,8 +2156,8 @@ class MainWindow(QMainWindow):
                 background-color: rgba(255, 255, 255, 1);
                 color: black;
                 font-family: WenQuanYi Zen Hei;
-                width: 100px; 
-                height: 35px;               
+                width: 200px; 
+                height: 30px;               
                 border-radius: 0px;               
                 font: bold 16px;
                 padding: 10px;                              
@@ -2119,7 +2226,7 @@ class MainWindow(QMainWindow):
 
         self.buju3 = QHBoxLayout()
         self.llm = QComboBox()
-        self.llm.addItems(['glm4', 'kimi' ,'deepseekv2','ollama'])
+        self.llm.addItems(['glm4', 'kimi' ,'deepseekv2','ollama','APIkey'])
         self.ollamabut = QPushButton('加载ollama模型(注意ollama端口要在运行)')
         self.ollamabut.clicked.connect(self.configollama)        
         self.buju3.addWidget(QLabel('聊天模型'))
@@ -2359,8 +2466,9 @@ class MainWindow(QMainWindow):
         api_config['LLM'] = (
             'glm' if self.llm.currentIndex() == 0 else
             'kimi' if self.llm.currentIndex() == 1 else
-            'deepseek' if self.llm.currentIndex() == 2 else
-            'ollama'  # 假设 currentIndex 为 2 时代表 'ollama'
+            'deepseekv2' if self.llm.currentIndex() == 2 else
+            'ollama' if self.llm.currentIndex() == 3 else
+            'APIkey'  
         )
 
         api_config['TXSecretId'] = self.kuang3.text()
@@ -2408,8 +2516,10 @@ class MainWindow(QMainWindow):
             self.llm.setCurrentIndex(1)  # 选择kimi
         elif config['LLM'] == 'deepseekv2':
             self.llm.setCurrentIndex(2) 
+        elif config['LLM'] == 'ollama':
+            self.llm.setCurrentIndex(3)
         else:
-            self.llm.setCurrentIndex(3)               
+            self.llm.setCurrentIndex(4)                   
 
 
         # 设置腾讯翻译SecretId和SecretKey
@@ -2538,12 +2648,37 @@ class MainWindow(QMainWindow):
                     print("error", e) 
             dd = threading.Thread(target=d)
             dd.start() 
+                      
     def onsentimg(self):
-        global openisimg
+        def staronsentimg():
+            global openisimg
+            exe_path = 'api/gugeapi.exe'
+            # 启动exe应用程序
+            subprocess.Popen(exe_path)
+            time.sleep(5)  
+            print('图片识别端口2001已开启(该模型是glm4模型，和对话模型会冲突，使用改功能时切记不要用glm4模型进行对话)')
+            openisimg = True 
+        def shoutonsentimg():
+            global openisimg
+            url = 'http://localhost:2001/shutdown'
+            response = requests.post(url)   
+            if response.status_code == 200:
+                print('已关闭图片识别端口2001:', response.json())
+            else:
+                print('关闭失败', response.status_code)           
+            openisimg = False 
         if self.sentimg.isChecked(): 
-            openisimg = True
+            th = threading.Thread(target=staronsentimg)
+            th.start()
         else:
-            openisimg = False       
+            tth =threading.Thread(target=shoutonsentimg)
+            tth.start()
+
+    def onsetorder(self): 
+        if self.setorder.isChecked(): 
+            appwindow.isorder = True
+        else:
+            appwindow.isorder = False                    
     def toggle_window(self):
         # 根据 QAction 的选中状态来显示或隐藏窗口
         if self.toggle_action.isChecked():
