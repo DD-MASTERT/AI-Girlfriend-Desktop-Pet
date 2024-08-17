@@ -15,4 +15,7 @@ pygame==2.6.0
 pydub==0.25.1
 edge-tts
 azure-cognitiveservices-speech
-
+openai==0.4.4
+qianfan==1.40.1
+PySide6==6.7.2
+selenium==4.3.0
