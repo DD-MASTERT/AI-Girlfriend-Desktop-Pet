@@ -1,5 +1,5 @@
 # 项目名称
-AI桌宠2.2（用网页端用户token白嫖服务器api，支持本地ollama模型聊天）（可用token的模型有glm4，kimi，deepseekv2）
+AI桌宠2.2（用网页端用户token白嫖服务器api，支持本地ollama模型聊天）（可用token的模型有glm4，kimi，deepseekv2）（桌面live2d模型2.0和3.0，支持主流国产大模型api对接）（屏幕识别自动发送，语音识别）
 ## 项目简介
 基于live2d-py项目实现的live2d桌面AI女友软件，（可用模型glm4，kimi，deepseekv2）（这三个国产大模型可以稳定回答我的跨语种角色扮演），可语音联动GPT-sovits（要替换安装一下我改过的补丁包，没有大改动，不影响原项目的使用），除外，还有edge-tts语音模式（edge-tts项目）多语言的需要在ui填写自己的api，可联动CosyVoice语音。（CosyVoice部分对标v3ucn大佬的整合包，我微改了他的api.py，用补丁替换原项目即可）
 
