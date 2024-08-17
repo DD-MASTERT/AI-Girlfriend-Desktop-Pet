@@ -19,3 +19,6 @@ openai==0.4.4
 qianfan==1.40.1
 PySide6==6.7.2
 selenium==4.3.0
+keyboard==0.13.5
+pywinauto==0.6.8
+psutil==6.0.0
