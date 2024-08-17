@@ -30,28 +30,24 @@ class kimiapi:
         }
 
         try:
-            response = requests.post(url, headers=headers, data=json.dumps(data))
-            response.raise_for_status()  # 确保请求成功
-            response_content = response.content.decode('utf-8')
-            data_lines = response_content.strip().split('\n')
-            texts = []
+            # 发送POST请求，并使用stream=True以启用流式下载
+            with requests.post(url, headers=headers, data=json.dumps(data), stream=True) as response:
+                response.raise_for_status()  # 确保请求成功
 
-            for line in data_lines[1:-1]:  # 跳过首尾行
-                try:
-                    # 跳过"data:"前缀并解析JSON
-                    data_json = json.loads(line[5:])
-                    if 'text' in data_json and data_json.get('event') == 'cmpl':
-                        texts.append(data_json['text'])
-                except (IndexError, json.JSONDecodeError):
-                    # 忽略格式不正确的行或解析JSON失败的情况
-                    continue
-
-            merged_text = ''.join(texts)
-            print(merged_text)
+                # 逐行读取响应内容
+                for line in response.iter_lines():
+                    if line:
+                        try:
+                            # 跳过"data:"前缀并解析JSON
+                            data_json = json.loads(line.decode('utf-8')[5:])
+                            if 'text' in data_json and data_json.get('event') == 'cmpl':
+                                yield data_json['text']  # 逐个产生文本行
+                        except (IndexError, json.JSONDecodeError, UnicodeDecodeError):
+                            # 忽略格式不正确的行或解析JSON失败的情况
+                            continue
 
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
-        return merged_text
         
 
     def gettoken(self):

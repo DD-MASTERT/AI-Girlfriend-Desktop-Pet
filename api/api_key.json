@@ -1,0 +1,23 @@
+{
+    "siliconflow_api_key": "",
+    "siliconflow_model": "THUDM/glm-4-9b-chat",
+    "zhipu_apikey": "",
+    "zhipu_model": "glm-4-flash",
+    "tongyi_apikey": "",
+    "tongyi_model": "qwen2-1.5b-instruct",
+    "qianfan_accesskey": "",
+    "qianfan_secretkey": "",
+    "qianfan_model": "ERNIE-Speed-8K",
+    "kimi_key": "",
+    "kimi_model": "moonshot-v1-32k",
+    "minimax_key": "",
+    "minimax_model": "abab6.5s-chat",
+    "doubao_api": "",
+    "doubao_id": "ep-20240809165253-lwcjq",
+    "xf_ak": "",
+    "xf_as": "",
+    "xf_model": "4.0Ultra",
+    "yi_key": "",
+    "yi_model": "yi-large",
+    "type": "yi"
+}

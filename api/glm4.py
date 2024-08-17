@@ -48,24 +48,21 @@ class glm4api:
                 }
             ]
         }
-
-        # 发送请求
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-        lines = response.text.strip().split('\n')
-        # 直接获取最后一行并处理
-        last_line = lines[-1]
-        if last_line.startswith("data:"):      
-            json_str = last_line.split("data:")[1].strip()
-            try:
-                json_data = json.loads(json_str)
-                for part in json_data.get('parts', []):
-                    for content in part.get('content', []):
-                        if content.get('type') == 'text':
-                            print(content.get('text'))
-                            return content.get('text')
-            except json.JSONDecodeError as e:
-                print(f"Error decoding JSON: {e}")
-                return(f"Error decoding JSON: {e}")
+        response = requests.post(url, headers=headers, data=json.dumps(data), stream=True)
+        for line in response.iter_lines():
+            if line:
+                decoded_line = line.decode('utf-8')
+                if decoded_line.startswith("data:"):
+                    json_str = decoded_line.split("data:")[1].strip()
+                    try:
+                        json_data = json.loads(json_str)
+                        for part in json_data.get('parts', []):
+                            for content in part.get('content', []):
+                                if content.get('type') == 'text':
+                                    yield content.get('text')
+                    except json.JSONDecodeError as e:
+                        print(f"Error decoding JSON: {e}")
+                        yield f"Error decoding JSON: {e}"
 
     def talknew(self,text='你好'):
         # 请求的 URL
@@ -109,7 +106,6 @@ class glm4api:
                 }
             ]
         }
-        # 发送请求
         response = requests.post(url, headers=headers, data=json.dumps(data))
         lines = response.text.strip().split('\n')
         last_line = lines[-1]

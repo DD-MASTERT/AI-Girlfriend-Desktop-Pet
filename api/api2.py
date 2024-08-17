@@ -31,6 +31,7 @@ from kimi import kimiapi
 from glm4 import glm4api
 from deepseek2 import deepseekv2
 from ollama import ollama
+from openapikey import openaiapi
 
 
 
@@ -79,6 +80,32 @@ Vosyspeaker = '中文女'
 speech_key = None
 
 service_region =None
+
+isorder = None
+def guolvorder(input_string):
+        if isorder:
+            pattern0 = re.compile(r'\*\*\{(.*?)\}\*\*')
+            # 存储匹配到的 **{...}** 内容和它们的位置
+            contents = []
+            # 存储替换后的特殊标记
+            placeholders = []
+            # 替换 **{...}** 为特殊标记，并存储内容
+            def replace_with_placeholder(match):
+                content = match.group(1)  # 获取匹配到的括号内的内容
+                placeholder = f"__{len(contents)}__"  # 创建一个特殊的标记
+                contents.append(content)  # 存储内容
+                placeholders.append(placeholder)  # 存储特殊标记
+                return placeholder
+            # 使用正则表达式替换函数
+            name_with_placeholders = pattern0.sub(replace_with_placeholder, input_string)          
+            # 定义正则表达式模式，匹配 [-需要提取的内容-] 格式
+            pattern = r'\[-[^]]*?-\]'              
+            # 使用 re.sub 删除所有匹配的项
+            modified_string = re.sub(pattern, '', name_with_placeholders, re.DOTALL)               
+            # 将删除后的内容赋值给一个新的变量
+            return modified_string
+        else:
+            return input_string
 # 读取JSON文件并赋值给全局变量的函数
 def load_json_config(filename):
     global LLM, OPTIONS, TOKEN, TXSecretId, TXSecretKey, TXS, TXT, BDaccess_token, BDS, BDT, APPID, SECRET, BDTS, BDTT, TTS, MB, Text_language, How_to_cut, Interval, R, T, GSV, Edgevoive,Vosyspeaker,speech_key,service_region
@@ -141,17 +168,19 @@ apiglm4 = glm4api()
 apikimi = kimiapi()
 apideepseek = deepseekv2()
 apiollama = ollama()
+apikey = openaiapi()
 def retoken():
-    global apiglm4,apikimi,apideepseek,apiollama
+    global apiglm4,apikimi,apideepseek,apiollama,apikey
     with open('api/gsv.json', 'r', encoding='utf-8') as file:
         gsvconfig = json.load(file)  # 加载JSON数据
     apiglm4.chatglm_refresh_token = gsvconfig['chatglm_refresh_token']
     apiglm4.assistant_id = gsvconfig['assistant_id']
     apikimi.refresh_token = gsvconfig['refresh_token']
     apideepseek.usertoken = gsvconfig['usertoken'] 
-    ollamamodel()   
+    ollamamodel()
+    apikey.loadmodel()
 def newtalk():
-    global LLM,apiglm4,apikimi,apideepseek,apiollama
+    global LLM,apiglm4,apikimi,apideepseek,apiollama,apikey
     if LLM == "glm": 
         apiglm4.talknew()
     elif LLM == "kimi":
@@ -159,12 +188,14 @@ def newtalk():
     elif LLM == "deepseek":  
         apideepseek.newtalk()
     elif LLM == "ollama":
-        apiollama.newtalk()  
+        apiollama.newtalk()
+    elif LLM == "APIkey":
+        apikey.newtalk()
     else:
         print("错误")    
 def uptoken():
     interval=600
-    global apiglm4,apikimi,LLM ,apideepseek   
+    global apiglm4,apikimi,LLM ,apideepseek,apikey   
     with open('api/gsv.json', 'r', encoding='utf-8') as file:
         gsvconfig = json.load(file)  # 加载JSON数据   
     if LLM == "glm":
@@ -183,7 +214,7 @@ def uptoken():
         with open('api/gsv.json', 'w', encoding='utf-8') as file:
             json.dump(gsvconfig, file, ensure_ascii=False, indent=4)  
     else:
-        print("deepseek2模型or其他ollama模型不需要刷新token")
+        print("deepseek2模型or其他不需要刷新token的模型")
     return interval           
 def looptime():
     i = 1
@@ -291,6 +322,7 @@ edge = False
 async def edgetts(text: str, output: str = 'api/edge/audio.mp3', voice: str = Edgevoive):
     global Edgevoive
     voice = Edgevoive
+    text = guolvorder(text)    
     if voice == 'zh-CN-XiaoxiaoMultilingualNeural': 
         await synthesize_text_to_speech(text,voice)   
     elif voice == 'zh-CN-XiaochenMultilingualNeural':
@@ -349,6 +381,7 @@ def convert_wav_to_mp3(wav_file_path ='api/edge/audio.wav'):
 
 cosy = False
 async def cosytts(text):
+    text = guolvorder(text)
     global Vosyspeaker
     vosyspeaker = Vosyspeaker
     # 获取当前工作目录
@@ -387,15 +420,21 @@ def glm4(preset_dialogue_file_path, user_input):
 
     # 以下是函数的其他部分，例如发送消息和获取反馈
 
-
+    dashscope_feedback = ''
     if LLM == "kimi":
-        dashscope_feedback = apikimi.talknext(mes)
+        for r in apikimi.talknext(mes):
+            dashscope_feedback += r
     elif LLM == "glm":
-        dashscope_feedback = apiglm4.talknext(mes)
+        for q in apiglm4.talknext(mes):
+            dashscope_feedback = q
     elif LLM == "ollama":
-        dashscope_feedback = apiollama.chat_with_model(mes)            
-    else:    
-        dashscope_feedback = apideepseek.talknext(mes)
+        dashscope_feedback = apiollama.chat_with_model(mes)
+    elif LLM == "APIkey":
+        dashscope_feedback = apikey.talk(mes)                
+    else: 
+        for d in apideepseek.talknext(mes): 
+         dashscope_feedback += d 
+
     if R == "括号翻译":
         wai, nei = separate_brackets(dashscope_feedback)    
         dashscope_feedback = wai
@@ -422,15 +461,21 @@ def onlyglm4(preset_dialogue_file_path, user_input):
         # 使用原始 user_input 构造消息
         mes = f"{user_input}"
 
+    dashscope_feedback = ''
     if LLM == "kimi":
-        dashscope_feedback = apikimi.talknext(mes)
+        for r in apikimi.talknext(mes):
+            dashscope_feedback += r
     elif LLM == "glm":
-        dashscope_feedback = apiglm4.talknext(mes)
+        for q in apiglm4.talknext(mes):
+            dashscope_feedback = q
     elif LLM == "ollama":
-        dashscope_feedback = apiollama.chat_with_model(mes)  
-    else:    
-        dashscope_feedback = apideepseek.talknext(mes)
-
+        dashscope_feedback = apiollama.chat_with_model(mes)
+    elif LLM == "APIkey":
+        dashscope_feedback = apikey.talk(mes)                     
+    else: 
+        for d in apideepseek.talknext(mes): 
+         dashscope_feedback += d 
+         
     if R == "括号翻译":
         wai, nei = separate_brackets(dashscope_feedback)    
         dashscope_feedback = wai
@@ -480,14 +525,14 @@ def play(dashscope_feedback):
 
 async def play_tts_audio(dashscope_feedback):
     global ref_audio_path, ref_text, ref_audio_language
-
+    tuili = guolvorder(dashscope_feedback)
     # 调用API获取 TTS 音频
     ref_audio_handled = handle_file(ref_audio_path)
     result = client.predict(
         ref_wav_path=ref_audio_handled,
         prompt_text=ref_text,
         prompt_language=ref_audio_language,
-        text=dashscope_feedback,  # 使用Dashscope反馈结果
+        text=tuili,  # 使用Dashscope反馈结果
         text_language=Text_language,
         how_to_cut=How_to_cut,
         top_k=5,
@@ -570,6 +615,7 @@ app.add_middleware(
 
 class TextInput(BaseModel):
     text: str
+    order: bool
 
 
 # 假设你的音频文件存储在
@@ -577,6 +623,9 @@ AUDIO_FILES_DIRECTORY = r'api/audio'
 
 @app.post("/multi_round_conversation/")
 def api_multi_round_conversation(input: TextInput):
+    global isorder
+    isorder = input.order
+       
 
     # 这里是人物模版文件路径
     preset_dialogue_file_path = os.path.join('moban', f'{MB}.txt')
@@ -624,11 +673,13 @@ def api_multi_round_conversation(input: TextInput):
 class TextInput1(BaseModel):
     text: str
     weiruan: int
+    order: bool
 
 
 @app.post("/onlyglm4/")
 def api_onlyglm4(input: TextInput1):
-    global edge,cosy
+    global edge,cosy,isorder
+    isorder = input.order
     if input.weiruan == 1:
         edge = True
         cosy = False
